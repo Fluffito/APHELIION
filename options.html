@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>APHELION Options</title>
+
+  <style>
+    html, body {
+      width: 400px;
+      min-width: 400px;
+      max-width: 400px;
+      margin: 0;
+      padding: 20px;
+      box-sizing: border-box;
+      background: #111;
+      color: #eee;
+      font-family: Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    h1 {
+      margin-bottom: 20px;
+      color: #fff;
+    }
+    label {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+    }
+    select, input {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 20px;
+      background: #222;
+      color: #eee;
+      border: 1px solid #444;
+      border-radius: 4px;
+    }
+    button {
+      padding: 10px 20px;
+      background: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0056b3;
+    }
+    .status {
+      margin-top: 12px;
+      color: #f6c23e;
+      font-size: 0.95rem;
+      min-height: 1.2rem;
+    }
+    .dropzone {
+      margin-top: -8px;
+      margin-bottom: 16px;
+      border: 1px dashed #666;
+      border-radius: 8px;
+      padding: 14px;
+      text-align: center;
+      background: #171717;
+      color: #bbb;
+      cursor: pointer;
+      transition: border-color 120ms ease, background 120ms ease;
+    }
+    .dropzone.dragover {
+      border-color: #9b6bff;
+      background: #201a2f;
+      color: #ddd;
+    }
+    .dropzone small {
+      display: block;
+      margin-top: 6px;
+      color: #8e8e8e;
+    }
+    .file-picker-row {
+      margin-top: 8px;
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+    }
+    .file-picker-btn {
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      background: #333;
+      border: 1px solid #555;
+      border-radius: 6px;
+      color: #eee;
+    }
+    .reset-btn {
+      padding: 6px 12px;
+      font-size: 0.9rem;
+      background: #2a2a2a;
+      border: 1px solid #555;
+      border-radius: 6px;
+      color: #ddd;
+    }
+    .preview {
+      margin-top: 10px;
+      display: none;
+      max-height: 120px;
+      max-width: 100%;
+      border-radius: 6px;
+      border: 1px solid #444;
+      object-fit: contain;
+      background: #0d0d0d;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>APHELION Options</h1>
+
+  <label for="censorGlyph">Censor Glyph:</label>
+  <select id="censorGlyph">
+    <option value="✦✦✦">Stars (✦✦✦)</option>
+    <option value="****">Asterisks (****)</option>
+    <option value="[CENSORED]">[CENSORED]</option>
+    <option value="░░░░">Blocks (░░░░)</option>
+    <option value="🚫">No Entry (🚫)</option>
+  </select>
+
+  <label for="customGlyph">Or enter custom glyph:</label>
+  <input type="text" id="customGlyph" placeholder="e.g., [BLOCKED]" maxlength="20" />
+
+  <label for="imageBlockMode">Image Blocking Mode:</label>
+  <select id="imageBlockMode">
+    <option value="blur">Blur blocked images</option>
+    <option value="hide">Hide blocked images</option>
+    <option value="replace">Replace blocked images</option>
+  </select>
+
+  <label for="replacementImageUrl">Replacement Image URL (for replace mode):</label>
+  <input type="text" id="replacementImageUrl" placeholder="https://example.com/placeholder.png or data:image/..." />
+
+  <div id="imageDropzone" class="dropzone" tabindex="0" role="button" aria-label="Upload replacement image">
+    Drag and drop an image here
+    <small>or click to choose a file (PNG, JPG, WEBP, GIF)</small>
+    <div class="file-picker-row">
+      <button id="filePickerBtn" class="file-picker-btn" type="button">Choose image file</button>
+      <button id="resetReplacementBtn" class="reset-btn" type="button">Reset image</button>
+    </div>
+    <img id="replacementPreview" class="preview" alt="Replacement image preview" />
+  </div>
+  <input type="file" id="replacementImageFile" accept="image/*" style="display:none" />
+
+  <button id="saveBtn">Save Settings</button>
+  <div id="status" class="status" aria-live="polite"></div>
+
+  <script src="options.js"></script>
+</body>
+</html>

@@ -1,0 +1,247 @@
+/* Full CSS — compact black + red popup (forces fixed width, resists parent layout) */
+
+/* Root variables */
+:root{
+  --bg:#0b0b0f;
+  --panel:#14141a;
+  --text:#e8e6ff;
+  --muted:#9a94c9;
+
+  /* Aphelion violet palette */
+  --violet:#9b6bff;
+  --violet-dark:#5a3ea6;
+  --violet-glow:#c7b3ff;
+
+  --item-bg:#111118;
+  --radius:6px;
+}
+
+/* predictable sizing */
+*,
+*::before,
+*::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg);
+  color: var(--text);
+  width: 250px;
+  min-width: 250px;
+  max-width: 250px;
+  font-family: Arial, sans-serif;
+}
+
+/* main container */
+.popup {
+  width: 250px;
+  min-width: 250px;
+  max-width: 250px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 10px;
+  background: rgba(11, 11, 15, 0.98);
+  border: 1px solid rgba(155, 107, 255, 0.18);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.45);
+}
+
+/* header */
+.title {
+  margin: 0;
+  text-align: center;
+  color: var(--violet-glow);
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 1px;
+}
+
+/* input */
+input#wordInput {
+  width: 100%;
+  padding: 6px;
+  border-radius: 4px;
+  border: none;
+  background: var(--panel);
+  color: var(--text);
+  font-size: 13px;
+  outline: none;
+}
+
+.license-input {
+  width: 100%;
+  padding: 6px;
+  border-radius: 4px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: var(--panel);
+  color: var(--text);
+  font-size: 12px;
+  outline: none;
+  text-transform: uppercase;
+}
+
+/* buttons */
+.button-row { display:flex; gap:6px; }
+
+.btn {
+  flex:1;
+  padding:6px;
+  border-radius:4px;
+  cursor:pointer;
+  font-weight:700;
+  font-size:13px;
+  border:0;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+
+/* Aphelion primary button */
+.btn-primary {
+  background: linear-gradient(180deg, var(--violet), var(--violet-dark));
+  color:#fff;
+  border:1px solid rgba(255,255,255,0.05);
+  box-shadow: 0 0 8px rgba(155,107,255,0.25);
+}
+
+/* Clear All — subtle cosmic black */
+.btn-danger {
+  background: linear-gradient(180deg, #1a1a22, #0f0f14);
+  color:var(--muted);
+  border:1px solid rgba(255,255,255,0.03);
+}
+
+/* counter */
+.counter { font-size:11px; color:var(--muted); }
+
+.popup-status {
+  min-height: 14px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.popup-status.error {
+  color: #ff9aa8;
+}
+
+.popup-status.success {
+  color: #8ef2b1;
+}
+
+.plan-card {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 8px;
+  background: rgba(155, 107, 255, 0.06);
+  border: 1px solid rgba(155, 107, 255, 0.16);
+}
+
+.plan-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+.plan-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 3px 8px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+}
+
+.plan-badge.free {
+  background: rgba(255,255,255,0.06);
+  color: var(--muted);
+}
+
+.plan-badge.paid {
+  background: rgba(155, 107, 255, 0.18);
+  color: var(--violet-glow);
+}
+
+.button-row-tight .btn {
+  padding: 5px;
+  font-size: 12px;
+}
+
+/* list */
+.blacklist {
+  list-style:none;
+  padding:6px;
+  margin:0;
+  max-height:200px;
+  overflow:auto;
+  border-radius:6px;
+  background:transparent;
+}
+
+.blacklist-item {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:6px 8px;
+  border-radius:6px;
+  margin-bottom:6px;
+  background:var(--item-bg);
+  transition: background-color 0.12s ease;
+  font-size:13px;
+}
+
+.blacklist-item:hover {
+  background: rgba(155,107,255,0.08);
+}
+
+.word-text {
+  color:var(--text);
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  max-width:150px;
+}
+
+/* delete button — tiny lunar dot */
+.delete-btn {
+  background:transparent;
+  border:1px solid rgba(255,255,255,0.05);
+  color:var(--violet-glow);
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-weight:700;
+  cursor:pointer;
+  padding:0;
+  font-size:12px;
+}
+
+/* footer for web link */
+.footer {
+  margin-top:20px;
+  text-align:center;
+  padding:10px 0;
+  border-top:1px solid rgba(255,255,255,0.1);
+}
+
+.web-link {
+  color:var(--violet-glow);
+  text-decoration:none;
+  font-size:14px;
+  transition:color 0.3s ease;
+}
+
+.web-link:hover {
+  color:#fff;
+}

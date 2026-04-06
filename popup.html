@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>APHELION</title>
+
+  <!-- Inline safety styles to lock width before styles.css loads -->
+  <style>
+    html, body {
+      width: 250px !important;
+      min-width: 250px !important;
+      max-width: 250px !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      box-sizing: border-box !important;
+    }
+    .popup { 
+      display: block !important; 
+      visibility: visible !important; 
+    }
+  </style>
+
+  <link rel="stylesheet" href="styles.css" />
+</head>
+
+<body>
+  <div class="popup" role="dialog" aria-label="APHELION popup">
+    <h2 class="title">APHELION</h2>
+
+    <label for="wordInput" class="sr-only">Add word to blacklist</label>
+    <input id="wordInput" type="text" placeholder="Add word to blacklist" autocomplete="off" />
+
+    <div class="button-row">
+      <button id="addBtn" class="btn btn-primary" type="button">Add</button>
+      <button id="clearBtn" class="btn btn-danger" type="button">Clear All</button>
+    </div>
+
+    <div id="counter" class="counter">Blacklisted: 0</div>
+    <div id="popupStatus" class="popup-status" aria-live="polite"></div>
+
+    <div class="plan-card" aria-label="Purchase restore area">
+      <div class="plan-row">
+        <span>Current plan</span>
+        <strong id="planBadge" class="plan-badge free">Free</strong>
+      </div>
+      <label for="licenseKeyInput" class="sr-only">Paste your license key</label>
+      <input id="licenseKeyInput" class="license-input" type="text" placeholder="Paste license key" autocomplete="off" spellcheck="false" />
+      <div class="button-row button-row-tight">
+        <button id="unlockBtn" class="btn btn-primary" type="button">Unlock</button>
+        <button id="restoreBtn" class="btn btn-danger" type="button">Restore</button>
+      </div>
+    </div>
+
+    <ul id="blacklistDisplay" class="blacklist" aria-live="polite"></ul>
+
+    <div class="footer">
+      <a href="https://fluffito.github.io/APHELION/" target="_blank" rel="noreferrer noopener" class="web-link">Manage on Web</a>
+    </div>
+
+    <template id="blacklistItemTemplate">
+      <li class="blacklist-item">
+        <span class="word-text"></span>
+        <button class="delete-btn" type="button" aria-label="Remove word">x</button>
+      </li>
+    </template>
+  </div>
+
+  <!-- IMPORTANT: popup.js is now inlined, no module needed -->
+  <script src="popup.js"></script>
+</body>
+</html>

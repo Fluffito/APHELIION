@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>APHELION — purchase success</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="success-shell">
+    <section class="status-card">
+      <span id="statusTag" class="status-tag">Checking payment</span>
+      <h1>Thanks for supporting APHELION</h1>
+      <p id="purchaseStatus" class="status-copy">Checking your checkout session and generating your license key...</p>
+
+      <div id="licensePanel" class="license-panel" hidden>
+        <p id="licenseTypeLabel" class="license-label">Your license key</p>
+        <code id="licenseKeyOutput" class="license-box">Loading...</code>
+        <div class="success-actions">
+          <button id="copyLicenseBtn" class="btn btn-primary" type="button">Copy key</button>
+          <a class="btn btn-secondary" href="index.html#pricing">Back to pricing</a>
+        </div>
+        <p class="mini-note">Open the APHELION extension popup, paste the key, then click <strong>Unlock</strong> or <strong>Restore Purchase</strong>.</p>
+      </div>
+    </section>
+  </div>
+  <script src="success.js"></script>
+</body>
+</html>
