@@ -36,7 +36,8 @@ The website is configured for GitHub Pages using the `docs/` folder.
 
 ### Stripe on Vercel
 
-- Deploy the serverless webhook at `api/webhooks.js`
+- Set the **Vercel Root Directory** to the repo root, not `docs/`
+- The serverless routes now live under `api/` (`webhooks`, `create-checkout-session`, `checkout-status`, `generateVariants`)
 - Set the Stripe webhook URL to `https://YOUR-VERCEL-DOMAIN/api/webhooks`
 - Subscribe to `checkout.session.completed`
 - Add `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` in Vercel environment variables

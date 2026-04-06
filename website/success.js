@@ -1,8 +1,12 @@
 (() => {
+  const DEFAULT_API_BASE = window.location.hostname && !/^(localhost|127\.0\.0\.1)$/i.test(window.location.hostname)
+    ? window.location.origin
+    : "http://localhost:3000";
+
   const API_BASE = String(
     window.APHELION_API_BASE
       || localStorage.getItem("aphelionApiBase")
-      || "http://localhost:3000"
+      || DEFAULT_API_BASE
   ).replace(/\/$/, "");
 
   const statusTag = document.getElementById("statusTag");

@@ -1,0 +1,10 @@
+{
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/generateVariants", "destination": "/api/generateVariants" },
+    { "source": "/create-checkout-session", "destination": "/api/create-checkout-session" },
+    { "source": "/checkout-status", "destination": "/api/checkout-status" },
+    { "source": "/", "destination": "/docs/index.html" },
+    { "source": "/(.*)", "destination": "/docs/$1" }
+  ]
+}
