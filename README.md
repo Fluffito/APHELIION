@@ -34,6 +34,13 @@ The website is configured for GitHub Pages using the `docs/` folder.
 - **GitHub Pages URL:** `https://fluffito.github.io/APHELIION/`
 - **Source:** `main` branch → `/docs`
 
+### Stripe on Vercel
+
+- Deploy the serverless webhook at `api/webhooks.js`
+- Set the Stripe webhook URL to `https://YOUR-VERCEL-DOMAIN/api/webhooks`
+- Subscribe to `checkout.session.completed`
+- Add `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` in Vercel environment variables
+
 ## 📌 Roadmap
 
 - Bonk sound packs and premium sound options
