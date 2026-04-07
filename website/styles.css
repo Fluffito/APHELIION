@@ -657,8 +657,46 @@ body.panel-open {
   color: #9f9bf5;
 }
 
+.footer-links {
+  margin: 10px 0;
+}
+
+.footer a {
+  color: #c7b3ff;
+  text-decoration: none;
+}
+
+.footer a:hover {
+  color: #ffffff;
+}
+
 .footer small {
   color: #7f7baf;
+}
+
+.policy-section {
+  margin-top: 18px;
+}
+
+.policy-section h2 {
+  margin: 0 0 8px;
+  font-size: 1.05rem;
+  color: #fff;
+}
+
+.policy-section p,
+.policy-list {
+  color: #d7d4ff;
+  line-height: 1.7;
+}
+
+.policy-list {
+  margin: 8px 0 0 18px;
+  padding: 0;
+}
+
+.policy-list li + li {
+  margin-top: 8px;
 }
 
 .success-shell {
