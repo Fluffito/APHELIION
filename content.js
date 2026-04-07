@@ -1,6 +1,7 @@
 // content.js — APHELION (clean, worker-enabled, pattern-first, iframe+shadow support)
 // This version renders the censor glyph via CSS ::before so no visible text nodes are inserted.
 
+const chrome = globalThis.chrome || globalThis.browser;
 console.log("[content] content.js loaded on", document.location.href);
 
 const DEBUG = true;

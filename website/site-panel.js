@@ -7,7 +7,7 @@
     imageBlockSoundEnabled: false,
     blockSoundDataUrl: "",
     blockSoundVolume: 0.65,
-    planTier: ""
+    planTier: "free"
   };
 
   const menuToggle = document.getElementById("siteMenuToggle");
@@ -41,7 +41,7 @@
   const testBonkBtn = document.getElementById("siteTestBonkBtn");
   const PLAN_FREE = "free";
   const PLAN_UNLIMITED = "unlimited-bonk";
-  let currentPlanTier = "";
+  let currentPlanTier = PLAN_FREE;
   let syncTimer = null;
 
   if (!menuToggle || !menuClose || !overlay || !panel || !form || !tabButtons.length || !tabPanels.length || !censorGlyph || !customGlyph || !imageMode || !replacementImageUrl || !previewGlyph || !previewSummary || !imageDropzone || !imagePickerBtn || !imageResetBtn || !imagePreview || !imageFile || !soundEnabled || !soundVolume || !soundVolumeValue || !soundUrl || !soundDropzone || !soundPickerBtn || !soundResetBtn || !soundPreview || !soundFile || !status || !testBonkBtn) {
@@ -91,7 +91,12 @@
     updateLivePreview();
     setStatus(message || "Bonk sounds are part of Unlimited Bonk. See Pricing Preview to unlock them.");
     if (jumpToPricing) {
+      const pricingSection = document.getElementById("pricing");
+      if (pricingSection && typeof pricingSection.scrollIntoView === "function") {
+        pricingSection.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
       window.location.hash = "pricing";
+      closePanel();
     }
   }
 
