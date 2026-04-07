@@ -225,6 +225,8 @@ let blockSoundDataUrl = "";
 let blockSoundVolume = 0.65;
 let lastBlockSoundAt = 0;
 let sharedAudioContext = null;
+let pendingBlockSound = false;
+let activeCustomBlockAudio = null;
 const FREE_IMAGE_LIMIT = 50;
 const PLAN_UNLIMITED = "unlimited-bonk";
 
@@ -365,60 +367,102 @@ function getSharedAudioContext() {
       return null;
     }
   }
-  if (sharedAudioContext.state === "suspended") {
-    sharedAudioContext.resume().catch(() => {});
-  }
   return sharedAudioContext;
 }
 
 function playDefaultBlockSound() {
   const ctx = getSharedAudioContext();
-  if (!ctx) return;
-  const now = ctx.currentTime;
-  const osc = ctx.createOscillator();
-  const gain = ctx.createGain();
-  osc.type = "triangle";
-  osc.frequency.setValueAtTime(180, now);
-  osc.frequency.exponentialRampToValueAtTime(70, now + 0.16);
-  gain.gain.setValueAtTime(0.0001, now);
-  gain.gain.exponentialRampToValueAtTime(Math.max(0.02, blockSoundVolume * 0.35), now + 0.015);
-  gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
-  osc.connect(gain);
-  gain.connect(ctx.destination);
-  osc.start(now);
-  osc.stop(now + 0.2);
-}
+  if (!ctx) return Promise.resolve(false);
 
-function playImageBlockSound() {
-  if (!blockSoundEnabled || !isUnlimitedPlan()) return;
-  const now = Date.now();
-  if (now - lastBlockSoundAt < 225) return;
-  lastBlockSoundAt = now;
-
-  if (blockSoundDataUrl) {
+  const startPlayback = () => {
     try {
-      const audio = new Audio(blockSoundDataUrl);
-      audio.volume = blockSoundVolume;
-      audio.play().catch(() => {
-        playDefaultBlockSound();
-      });
-      return;
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(180, now);
+      osc.frequency.exponentialRampToValueAtTime(70, now + 0.16);
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.exponentialRampToValueAtTime(Math.max(0.02, blockSoundVolume * 0.35), now + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.18);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.2);
+      return true;
     } catch (error) {
-      // fall through to the default bonk
+      return false;
     }
+  };
+
+  if (ctx.state === "running") {
+    return Promise.resolve(startPlayback());
   }
 
-  playDefaultBlockSound();
+  return ctx.resume()
+    .then(() => (ctx.state === "running" ? startPlayback() : false))
+    .catch(() => false);
+}
+
+function playCustomBlockSound() {
+  if (!blockSoundDataUrl) return Promise.resolve(false);
+
+  try {
+    if (activeCustomBlockAudio) {
+      try {
+        activeCustomBlockAudio.pause();
+      } catch (error) {
+        // ignore old audio cleanup issues
+      }
+    }
+
+    const audio = new Audio(blockSoundDataUrl);
+    activeCustomBlockAudio = audio;
+    audio.volume = blockSoundVolume;
+    audio.currentTime = 0;
+    return audio.play().then(() => true).catch(() => false);
+  } catch (error) {
+    return Promise.resolve(false);
+  }
+}
+
+function playImageBlockSound(force = false) {
+  if (!blockSoundEnabled || !isUnlimitedPlan()) return;
+
+  const now = Date.now();
+  if (!force && now - lastBlockSoundAt < 225) return;
+  lastBlockSoundAt = now;
+  pendingBlockSound = true;
+
+  playCustomBlockSound()
+    .then((playedCustom) => {
+      if (playedCustom) {
+        pendingBlockSound = false;
+        return true;
+      }
+      return playDefaultBlockSound().then((playedDefault) => {
+        pendingBlockSound = !playedDefault;
+        return playedDefault;
+      });
+    })
+    .catch(() => {
+      pendingBlockSound = true;
+    });
 }
 
 if (typeof window !== "undefined") {
-  ["pointerdown", "keydown"].forEach((eventName) => {
-    window.addEventListener(eventName, () => {
-      const ctx = getSharedAudioContext();
-      if (ctx && ctx.state === "suspended") {
-        ctx.resume().catch(() => {});
-      }
-    }, { passive: true, capture: true });
+  const unlockBlockSound = () => {
+    const ctx = getSharedAudioContext();
+    if (ctx && ctx.state === "suspended") {
+      ctx.resume().catch(() => {});
+    }
+    if (pendingBlockSound) {
+      playImageBlockSound(true);
+    }
+  };
+
+  ["pointerdown", "keydown", "mousedown"].forEach((eventName) => {
+    window.addEventListener(eventName, unlockBlockSound, { passive: true, capture: true });
   });
 }
 
