@@ -3,9 +3,9 @@
   const DEFAULTS = {
     censorGlyph: "✦✦✦",
     imageBlockMode: "blur",
+    replacementImageUrl: "",
     imageBlockSoundEnabled: false,
-    blockSoundVolume: 0.65,
-    aphelionApiBase: ""
+    blockSoundVolume: 0.65
   };
 
   const menuToggle = document.getElementById("siteMenuToggle");
@@ -14,16 +14,17 @@
   const panel = document.getElementById("siteMenuPanel");
   const form = document.getElementById("siteSettingsForm");
   const censorGlyph = document.getElementById("siteCensorGlyph");
+  const customGlyph = document.getElementById("siteCustomGlyph");
   const imageMode = document.getElementById("siteImageMode");
+  const replacementImageUrl = document.getElementById("siteReplacementImageUrl");
   const soundEnabled = document.getElementById("siteSoundEnabled");
   const soundVolume = document.getElementById("siteSoundVolume");
   const soundVolumeValue = document.getElementById("siteSoundVolumeValue");
-  const apiBase = document.getElementById("siteApiBase");
   const status = document.getElementById("siteSettingsStatus");
   const testBonkBtn = document.getElementById("siteTestBonkBtn");
   let syncTimer = null;
 
-  if (!menuToggle || !menuClose || !overlay || !panel || !form || !censorGlyph || !imageMode || !soundEnabled || !soundVolume || !soundVolumeValue || !apiBase || !status || !testBonkBtn) {
+  if (!menuToggle || !menuClose || !overlay || !panel || !form || !censorGlyph || !customGlyph || !imageMode || !replacementImageUrl || !soundEnabled || !soundVolume || !soundVolumeValue || !status || !testBonkBtn) {
     return;
   }
 
@@ -49,11 +50,6 @@
 
   function saveLocalSettings(settings) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
-    if (settings.aphelionApiBase) {
-      localStorage.setItem("aphelionApiBase", settings.aphelionApiBase);
-    } else {
-      localStorage.removeItem("aphelionApiBase");
-    }
   }
 
   function updateVolumeLabel() {
@@ -62,21 +58,27 @@
   }
 
   function applySettings(settings) {
-    censorGlyph.value = settings.censorGlyph || DEFAULTS.censorGlyph;
+    const glyphValue = String(settings.censorGlyph || DEFAULTS.censorGlyph).trim() || DEFAULTS.censorGlyph;
+    const presetMatch = Array.from(censorGlyph.options).find((option) => option.value === glyphValue);
+    censorGlyph.value = presetMatch ? presetMatch.value : DEFAULTS.censorGlyph;
+    customGlyph.value = presetMatch ? "" : glyphValue;
     imageMode.value = ["blur", "hide", "replace"].includes(settings.imageBlockMode) ? settings.imageBlockMode : DEFAULTS.imageBlockMode;
+    replacementImageUrl.value = typeof settings.replacementImageUrl === "string" ? settings.replacementImageUrl : "";
     soundEnabled.value = settings.imageBlockSoundEnabled ? "on" : "off";
     soundVolume.value = String(Math.max(0, Math.min(100, Math.round((Number(settings.blockSoundVolume) || DEFAULTS.blockSoundVolume) * 100))));
-    apiBase.value = String(settings.aphelionApiBase || localStorage.getItem("aphelionApiBase") || "").trim();
     updateVolumeLabel();
   }
 
   function readFormSettings() {
+    const chosenGlyph = String(customGlyph.value || censorGlyph.value || DEFAULTS.censorGlyph).trim() || DEFAULTS.censorGlyph;
+    const replacement = String(replacementImageUrl.value || "").trim();
+    const safeReplacement = (/^https?:\/\//i.test(replacement) || /^data:image\//i.test(replacement)) ? replacement : "";
     return {
-      censorGlyph: String(censorGlyph.value || DEFAULTS.censorGlyph).trim() || DEFAULTS.censorGlyph,
+      censorGlyph: chosenGlyph,
       imageBlockMode: imageMode.value,
+      replacementImageUrl: safeReplacement,
       imageBlockSoundEnabled: soundEnabled.value === "on",
-      blockSoundVolume: Math.max(0, Math.min(1, (Number(soundVolume.value) || 65) / 100)),
-      aphelionApiBase: String(apiBase.value || "").trim().replace(/\/$/, "")
+      blockSoundVolume: Math.max(0, Math.min(1, (Number(soundVolume.value) || 65) / 100))
     };
   }
 

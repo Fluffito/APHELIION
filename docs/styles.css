@@ -26,6 +26,11 @@ body.panel-open {
   overflow: hidden;
 }
 
+::selection {
+  background: #d9ccff;
+  color: #111;
+}
+
 .page-shell {
   max-width: 940px;
   margin: 0 auto;
@@ -144,6 +149,20 @@ body.panel-open {
   border: 1px solid rgba(255, 255, 255, 0.14);
   background: rgba(255, 255, 255, 0.04);
   color: #f2f0ff;
+}
+
+.site-settings-form input::placeholder {
+  color: #9c97bf;
+}
+
+.site-settings-form select option {
+  color: #111;
+  background: #fff;
+}
+
+.site-settings-form input[type="range"] {
+  padding: 0;
+  accent-color: var(--violet);
 }
 
 .site-settings-actions {

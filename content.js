@@ -941,6 +941,7 @@ if (typeof window !== "undefined") {
           settings: {
             censorGlyph: typeof res?.censorGlyph === "string" ? res.censorGlyph : "✦✦✦",
             imageBlockMode: normalizeImageMode(res?.imageBlockMode),
+            replacementImageUrl: safeReplacementUrl(res?.replacementImageUrl),
             imageBlockSoundEnabled: Boolean(res?.imageBlockSoundEnabled),
             blockSoundVolume: normalizeSoundVolume(res?.blockSoundVolume),
             planTier: normalizePlanTier(res?.planTier)
@@ -955,6 +956,7 @@ if (typeof window !== "undefined") {
       const payload = {
         censorGlyph: typeof settings.censorGlyph === "string" && settings.censorGlyph.trim() ? settings.censorGlyph.trim().slice(0, 20) : "✦✦✦",
         imageBlockMode: normalizeImageMode(settings.imageBlockMode),
+        replacementImageUrl: safeReplacementUrl(settings.replacementImageUrl),
         imageBlockSoundEnabled: Boolean(settings.imageBlockSoundEnabled),
         blockSoundVolume: normalizeSoundVolume(settings.blockSoundVolume)
       };

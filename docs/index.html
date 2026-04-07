@@ -24,7 +24,7 @@
     </div>
 
     <form id="siteSettingsForm" class="site-settings-form">
-      <label for="siteCensorGlyph">Censor style</label>
+      <label for="siteCensorGlyph">Censor preset</label>
       <select id="siteCensorGlyph">
         <option value="✦✦✦">Stars (✦✦✦)</option>
         <option value="****">Asterisks (****)</option>
@@ -33,12 +33,18 @@
         <option value="🚫">No Entry (🚫)</option>
       </select>
 
+      <label for="siteCustomGlyph">Custom censor text</label>
+      <input id="siteCustomGlyph" type="text" placeholder="e.g. [BLOCKED]" maxlength="20" autocomplete="off" />
+
       <label for="siteImageMode">Image blocking</label>
       <select id="siteImageMode">
         <option value="blur">Blur blocked images</option>
         <option value="hide">Hide blocked images</option>
         <option value="replace">Replace blocked images</option>
       </select>
+
+      <label for="siteReplacementImageUrl">Custom replacement image URL</label>
+      <input id="siteReplacementImageUrl" type="text" placeholder="https://example.com/placeholder.png or data:image/..." autocomplete="off" />
 
       <label for="siteSoundEnabled">Bonk sounds</label>
       <select id="siteSoundEnabled">
@@ -48,9 +54,6 @@
 
       <label for="siteSoundVolume">Bonk volume <span id="siteSoundVolumeValue">65%</span></label>
       <input id="siteSoundVolume" type="range" min="0" max="100" step="1" value="65" />
-
-      <label for="siteApiBase">Server URL (optional)</label>
-      <input id="siteApiBase" type="text" placeholder="https://your-vercel-domain" autocomplete="off" />
 
       <div class="site-settings-actions">
         <button class="btn btn-primary" type="submit">Save on web</button>
