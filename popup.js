@@ -1,7 +1,9 @@
 // popup.js — APHELION (UI, optimistic entry create, background merge)
 // Inlined api.js functions to avoid module import issues in some browsers
 
-const chrome = globalThis.chrome || globalThis.browser;
+if (typeof globalThis.chrome === "undefined" && typeof globalThis.browser !== "undefined") {
+  globalThis.chrome = globalThis.browser;
+}
 console.log("[popup] script loaded");
 
 // --- Inlined from api.js ---

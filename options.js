@@ -1,6 +1,8 @@
 // options.js — APHELION settings
 
-const chrome = globalThis.chrome || globalThis.browser;
+if (typeof globalThis.chrome === "undefined" && typeof globalThis.browser !== "undefined") {
+  globalThis.chrome = globalThis.browser;
+}
 
 document.addEventListener("DOMContentLoaded", () => {
   const PLAN_FREE = "free";

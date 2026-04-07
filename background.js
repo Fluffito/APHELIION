@@ -1,5 +1,7 @@
 // background.js — APHELION (object schema, migration, merge API, notifications)
-const chrome = globalThis.chrome || globalThis.browser;
+if (typeof globalThis.chrome === "undefined" && typeof globalThis.browser !== "undefined") {
+  globalThis.chrome = globalThis.browser;
+}
 console.log("[BG] background.js starting");
 const LOG = true;
 const PLAN_FREE = "free";
