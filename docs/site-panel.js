@@ -5,6 +5,7 @@
     imageBlockMode: "blur",
     replacementImageUrl: "",
     imageBlockSoundEnabled: false,
+    blockSoundDataUrl: "",
     blockSoundVolume: 0.65
   };
 
@@ -29,11 +30,17 @@
   const soundEnabled = document.getElementById("siteSoundEnabled");
   const soundVolume = document.getElementById("siteSoundVolume");
   const soundVolumeValue = document.getElementById("siteSoundVolumeValue");
+  const soundUrl = document.getElementById("siteCustomSoundUrl");
+  const soundDropzone = document.getElementById("siteSoundDropzone");
+  const soundPickerBtn = document.getElementById("siteSoundPickerBtn");
+  const soundResetBtn = document.getElementById("siteSoundResetBtn");
+  const soundPreview = document.getElementById("siteSoundPreview");
+  const soundFile = document.getElementById("siteSoundFile");
   const status = document.getElementById("siteSettingsStatus");
   const testBonkBtn = document.getElementById("siteTestBonkBtn");
   let syncTimer = null;
 
-  if (!menuToggle || !menuClose || !overlay || !panel || !form || !tabButtons.length || !tabPanels.length || !censorGlyph || !customGlyph || !imageMode || !replacementImageUrl || !previewGlyph || !previewSummary || !imageDropzone || !imagePickerBtn || !imageResetBtn || !imagePreview || !imageFile || !soundEnabled || !soundVolume || !soundVolumeValue || !status || !testBonkBtn) {
+  if (!menuToggle || !menuClose || !overlay || !panel || !form || !tabButtons.length || !tabPanels.length || !censorGlyph || !customGlyph || !imageMode || !replacementImageUrl || !previewGlyph || !previewSummary || !imageDropzone || !imagePickerBtn || !imageResetBtn || !imagePreview || !imageFile || !soundEnabled || !soundVolume || !soundVolumeValue || !soundUrl || !soundDropzone || !soundPickerBtn || !soundResetBtn || !soundPreview || !soundFile || !status || !testBonkBtn) {
     return;
   }
 
@@ -75,7 +82,10 @@
       : imageMode.value === "replace"
         ? "replace"
         : "blur";
-    const soundLabel = soundEnabled.value === "on" ? "on" : "off";
+    const hasCustomSound = Boolean(String(soundUrl.value || soundPreview.getAttribute("src") || "").trim());
+    const soundLabel = soundEnabled.value === "on"
+      ? (hasCustomSound ? "on with your custom sound" : "on")
+      : "off";
     previewSummary.textContent = `Images will ${imageLabel} and bonk sounds are ${soundLabel}.`;
   }
 
@@ -117,6 +127,34 @@
     }
   }
 
+  function openSoundPicker() {
+    try {
+      if (typeof soundFile.showPicker === "function") {
+        soundFile.showPicker();
+      } else {
+        soundFile.click();
+      }
+    } catch (error) {
+      soundFile.click();
+    }
+  }
+
+  function setSoundPreview(src) {
+    const value = String(src || "").trim();
+    if (value && (/^data:audio\//i.test(value) || /^https?:\/\//i.test(value))) {
+      soundPreview.src = value;
+      soundPreview.style.display = "block";
+      return;
+    }
+    try {
+      soundPreview.pause();
+    } catch (error) {
+      // ignore preview pause issues
+    }
+    soundPreview.removeAttribute("src");
+    soundPreview.style.display = "none";
+  }
+
   function handleImageFile(file) {
     if (!file) return;
     if (!file.type || !file.type.startsWith("image/")) {
@@ -145,6 +183,34 @@
     reader.readAsDataURL(file);
   }
 
+  function handleSoundFile(file) {
+    if (!file) return;
+    if (!file.type || !file.type.startsWith("audio/")) {
+      setStatus("Please choose an audio file such as MP3, WAV, or OGG.");
+      return;
+    }
+    if (file.size > 2_000_000) {
+      setStatus("Sound file is too large. Use a file under 2 MB.");
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = () => {
+      const dataUrl = typeof reader.result === "string" ? reader.result : "";
+      if (!dataUrl.startsWith("data:audio/")) {
+        setStatus("Could not read that sound file. Try another one.");
+        return;
+      }
+      soundEnabled.value = "on";
+      soundUrl.value = dataUrl;
+      setSoundPreview(dataUrl);
+      updateLivePreview();
+      setStatus("Sound loaded. It will sync to APHELION now.");
+      syncSettings();
+    };
+    reader.onerror = () => setStatus("Failed to read the selected sound file.");
+    reader.readAsDataURL(file);
+  }
+
   function applySettings(settings) {
     const glyphValue = String(settings.censorGlyph || DEFAULTS.censorGlyph).trim() || DEFAULTS.censorGlyph;
     const presetMatch = Array.from(censorGlyph.options).find((option) => option.value === glyphValue);
@@ -154,6 +220,8 @@
     replacementImageUrl.value = typeof settings.replacementImageUrl === "string" ? settings.replacementImageUrl : "";
     setImagePreview(replacementImageUrl.value);
     soundEnabled.value = settings.imageBlockSoundEnabled ? "on" : "off";
+    soundUrl.value = typeof settings.blockSoundDataUrl === "string" ? settings.blockSoundDataUrl : "";
+    setSoundPreview(soundUrl.value);
     soundVolume.value = String(Math.max(0, Math.min(100, Math.round((Number(settings.blockSoundVolume) || DEFAULTS.blockSoundVolume) * 100))));
     updateVolumeLabel();
     updateLivePreview();
@@ -163,11 +231,14 @@
     const chosenGlyph = String(customGlyph.value || censorGlyph.value || DEFAULTS.censorGlyph).trim() || DEFAULTS.censorGlyph;
     const replacement = String(replacementImageUrl.value || "").trim();
     const safeReplacement = (/^https?:\/\//i.test(replacement) || /^data:image\//i.test(replacement)) ? replacement : "";
+    const rawSound = String(soundUrl.value || soundPreview.getAttribute("src") || "").trim();
+    const safeSound = (/^https?:\/\//i.test(rawSound) || /^data:audio\//i.test(rawSound)) ? rawSound : "";
     return {
       censorGlyph: chosenGlyph,
       imageBlockMode: imageMode.value,
       replacementImageUrl: safeReplacement,
       imageBlockSoundEnabled: soundEnabled.value === "on",
+      blockSoundDataUrl: safeSound,
       blockSoundVolume: Math.max(0, Math.min(1, (Number(soundVolume.value) || 65) / 100))
     };
   }
@@ -212,7 +283,7 @@
     }, 180);
   }
 
-  function playPreviewBonk() {
+  function playDefaultPreviewBonk() {
     const AudioCtor = window.AudioContext || window.webkitAudioContext;
     if (!AudioCtor) {
       setStatus("Sound preview is unavailable in this browser.");
@@ -238,6 +309,20 @@
     } catch (error) {
       setStatus("The browser blocked the sound preview. Click again after interacting.");
     }
+  }
+
+  function playPreviewBonk() {
+    const customSound = String(soundUrl.value || soundPreview.getAttribute("src") || "").trim();
+    const volume = Math.max(0, Math.min(1, (Number(soundVolume.value) || 65) / 100));
+    if (!customSound) {
+      playDefaultPreviewBonk();
+      return;
+    }
+    soundPreview.volume = volume;
+    soundPreview.currentTime = 0;
+    soundPreview.play()
+      .then(() => setStatus("Playing your custom bonk sound."))
+      .catch(() => playDefaultPreviewBonk());
   }
 
   window.addEventListener("message", (event) => {
@@ -280,11 +365,19 @@
     setImagePreview(replacementImageUrl.value.trim());
     syncSettings();
   });
+  soundUrl.addEventListener("input", () => {
+    setSoundPreview(soundUrl.value.trim());
+    syncSettings();
+  });
 
   ["dragenter", "dragover"].forEach((eventName) => {
     imageDropzone.addEventListener(eventName, (event) => {
       event.preventDefault();
       imageDropzone.classList.add("dragover");
+    });
+    soundDropzone.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      soundDropzone.classList.add("dragover");
     });
   });
 
@@ -293,6 +386,10 @@
       event.preventDefault();
       imageDropzone.classList.remove("dragover");
     });
+    soundDropzone.addEventListener(eventName, (event) => {
+      event.preventDefault();
+      soundDropzone.classList.remove("dragover");
+    });
   });
 
   imageDropzone.addEventListener("drop", (event) => {
@@ -300,9 +397,18 @@
     const files = event.dataTransfer && event.dataTransfer.files;
     if (files && files[0]) handleImageFile(files[0]);
   });
+  soundDropzone.addEventListener("drop", (event) => {
+    event.preventDefault();
+    const files = event.dataTransfer && event.dataTransfer.files;
+    if (files && files[0]) handleSoundFile(files[0]);
+  });
   imageDropzone.addEventListener("click", (event) => {
     if (event.target && event.target.closest("button")) return;
     openImagePicker();
+  });
+  soundDropzone.addEventListener("click", (event) => {
+    if (event.target && event.target.closest("button")) return;
+    openSoundPicker();
   });
   imageDropzone.addEventListener("keydown", (event) => {
     if (event.key === "Enter" || event.key === " ") {
@@ -310,10 +416,21 @@
       openImagePicker();
     }
   });
+  soundDropzone.addEventListener("keydown", (event) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      openSoundPicker();
+    }
+  });
   imagePickerBtn.addEventListener("click", (event) => {
     event.preventDefault();
     event.stopPropagation();
     openImagePicker();
+  });
+  soundPickerBtn.addEventListener("click", (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    openSoundPicker();
   });
   imageResetBtn.addEventListener("click", (event) => {
     event.stopPropagation();
@@ -323,10 +440,24 @@
     setStatus("Custom replacement image cleared.");
     syncSettings();
   });
+  soundResetBtn.addEventListener("click", (event) => {
+    event.stopPropagation();
+    soundUrl.value = "";
+    setSoundPreview("");
+    soundEnabled.value = "off";
+    updateLivePreview();
+    setStatus("Custom bonk sound cleared.");
+    syncSettings();
+  });
   imageFile.addEventListener("change", (event) => {
     const file = event.target.files && event.target.files[0];
     if (file) handleImageFile(file);
     imageFile.value = "";
+  });
+  soundFile.addEventListener("change", (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (file) handleSoundFile(file);
+    soundFile.value = "";
   });
   testBonkBtn.addEventListener("click", playPreviewBonk);
   window.addEventListener("keydown", (event) => {

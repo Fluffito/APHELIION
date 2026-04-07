@@ -931,7 +931,9 @@ if (typeof window !== "undefined") {
       chrome.storage.local.get([
         "censorGlyph",
         "imageBlockMode",
+        "replacementImageUrl",
         "imageBlockSoundEnabled",
+        "blockSoundDataUrl",
         "blockSoundVolume",
         "planTier"
       ], (res) => {
@@ -943,6 +945,7 @@ if (typeof window !== "undefined") {
             imageBlockMode: normalizeImageMode(res?.imageBlockMode),
             replacementImageUrl: safeReplacementUrl(res?.replacementImageUrl),
             imageBlockSoundEnabled: Boolean(res?.imageBlockSoundEnabled),
+            blockSoundDataUrl: safeSoundUrl(res?.blockSoundDataUrl),
             blockSoundVolume: normalizeSoundVolume(res?.blockSoundVolume),
             planTier: normalizePlanTier(res?.planTier)
           }
@@ -958,6 +961,7 @@ if (typeof window !== "undefined") {
         imageBlockMode: normalizeImageMode(settings.imageBlockMode),
         replacementImageUrl: safeReplacementUrl(settings.replacementImageUrl),
         imageBlockSoundEnabled: Boolean(settings.imageBlockSoundEnabled),
+        blockSoundDataUrl: safeSoundUrl(settings.blockSoundDataUrl),
         blockSoundVolume: normalizeSoundVolume(settings.blockSoundVolume)
       };
 

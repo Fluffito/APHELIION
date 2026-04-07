@@ -4,7 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>APHELION — block cursed content</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=20250407c" />
 </head>
 <body>
   <button id="siteMenuToggle" class="site-menu-toggle" type="button" aria-label="Open APHELION settings">
@@ -81,6 +81,19 @@
 
         <label for="siteSoundVolume">Bonk volume <span id="siteSoundVolumeValue">65%</span></label>
         <input id="siteSoundVolume" type="range" min="0" max="100" step="1" value="65" />
+
+        <label for="siteCustomSoundUrl">Custom bonk sound</label>
+        <input id="siteCustomSoundUrl" type="text" placeholder="https://example.com/bonk.mp3 or data:audio/..." autocomplete="off" />
+        <div id="siteSoundDropzone" class="site-image-dropzone site-sound-dropzone" tabindex="0" role="button" aria-label="Upload bonk sound">
+          Drag and drop a sound file here
+          <small>or click to choose a file (MP3, WAV, OGG, M4A)</small>
+          <div class="site-settings-actions">
+            <button id="siteSoundPickerBtn" class="btn btn-secondary" type="button">Choose sound file</button>
+            <button id="siteSoundResetBtn" class="btn btn-secondary" type="button">Reset sound</button>
+          </div>
+          <audio id="siteSoundPreview" class="site-sound-preview" controls preload="none"></audio>
+        </div>
+        <input id="siteSoundFile" class="site-hidden-file-input" type="file" accept="audio/*" />
       </section>
 
       <div class="site-settings-actions">
@@ -198,7 +211,7 @@
       <p><small>Need a demo or want to support development? Keep this project bookmarked.</small></p>
     </footer>
   </div>
-  <script src="checkout.js"></script>
-  <script src="site-panel.js"></script>
+  <script src="checkout.js?v=20250407c"></script>
+  <script src="site-panel.js?v=20250407c"></script>
 </body>
 </html>
