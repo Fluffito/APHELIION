@@ -1,7 +1,9 @@
 // options.js — APHELION settings
 
 document.addEventListener("DOMContentLoaded", () => {
+  const PLAN_FREE = "free";
   const PLAN_UNLIMITED = "unlimited-bonk";
+  const UPGRADE_URL = "https://fluffito.github.io/APHELIION/#pricing";
   const DEFAULT_REPLACEMENT_IMAGE_URL = "data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='640' height='360' viewBox='0 0 640 360'%3E%3Crect width='640' height='360' fill='%23111111'/%3E%3Ctext x='50%25' y='48%25' dominant-baseline='middle' text-anchor='middle' fill='%23c7b3ff' font-family='Arial,sans-serif' font-size='30'%3EAPHELION%3C/text%3E%3Ctext x='50%25' y='60%25' dominant-baseline='middle' text-anchor='middle' fill='%239a94c9' font-family='Arial,sans-serif' font-size='18'%3EBONKED%3C/text%3E%3C/svg%3E";
   const DEFAULT_BLOCK_SOUND_VOLUME = 0.65;
 
@@ -39,7 +41,15 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  let currentPlanTier = "free";
+  let currentPlanTier = PLAN_FREE;
+
+  function isUnlimitedUnlocked() {
+    return currentPlanTier === PLAN_UNLIMITED;
+  }
+
+  function promptUpgrade(message) {
+    setStatus(message || "Bonk sounds are part of Unlimited Bonk. Upgrade from the Pricing Preview to unlock them.");
+  }
 
   function setPreview(src) {
     if (typeof src === "string" && src.trim()) {
@@ -76,9 +86,17 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function updateSoundNote() {
-    soundPlanNote.textContent = currentPlanTier === PLAN_UNLIMITED
+    soundPlanNote.innerHTML = isUnlimitedUnlocked()
       ? "Unlimited Bonk active. Your bonk sound is live for word and image blocks."
-      : "Only active on Unlimited Bonk ($5 plan). You can still preload your sound here.";
+      : `Locked on Free. Upgrade on the <a href="${UPGRADE_URL}" target="_blank" rel="noreferrer noopener">Pricing Preview</a> to enable bonk sounds and custom uploads.`;
+  }
+
+  function applyPaidLocks() {
+    updateSoundNote();
+    if (!isUnlimitedUnlocked()) {
+      imageBlockSoundEnabled.value = "off";
+      setSoundPreview("");
+    }
   }
 
   function updateVolumeLabel() {
@@ -114,6 +132,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function previewSound() {
+    if (!isUnlimitedUnlocked()) {
+      promptUpgrade("Bonk sounds are locked on the Free plan. Upgrade to Unlimited Bonk to use them.");
+      return;
+    }
+
     const src = soundPreview.getAttribute("src") || "";
     const volume = Math.max(0, Math.min(1, (Number(blockSoundVolume.value) || 65) / 100));
     if (!src) {
@@ -158,6 +181,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function handleSoundFile(file) {
+    if (!isUnlimitedUnlocked()) {
+      promptUpgrade("Custom sound uploads are part of Unlimited Bonk. Upgrade on the Pricing Preview to unlock them.");
+      return;
+    }
     if (!file) return;
     if (!file.type || !file.type.startsWith("audio/")) {
       setStatus("Please choose an audio file such as MP3, WAV, or OGG.");
@@ -213,8 +240,8 @@ document.addEventListener("DOMContentLoaded", () => {
     updateVolumeLabel();
     setSoundPreview(typeof res.blockSoundDataUrl === "string" ? res.blockSoundDataUrl : "");
 
-    currentPlanTier = res?.planTier === PLAN_UNLIMITED ? PLAN_UNLIMITED : "free";
-    updateSoundNote();
+    currentPlanTier = res?.planTier === PLAN_UNLIMITED ? PLAN_UNLIMITED : PLAN_FREE;
+    applyPaidLocks();
   });
 
   replacementImageUrl.addEventListener("input", () => {
@@ -232,6 +259,12 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   blockSoundVolume.addEventListener("input", updateVolumeLabel);
+  imageBlockSoundEnabled.addEventListener("change", () => {
+    if (imageBlockSoundEnabled.value === "on" && !isUnlimitedUnlocked()) {
+      imageBlockSoundEnabled.value = "off";
+      promptUpgrade("Bonk sounds are part of Unlimited Bonk. Upgrade on the Pricing Preview to enable them.");
+    }
+  });
 
   ["dragenter", "dragover"].forEach((evt) => {
     imageDropzone.addEventListener(evt, (e) => {
@@ -326,13 +359,22 @@ document.addEventListener("DOMContentLoaded", () => {
     const rawSound = (soundPreview.getAttribute("src") || "").trim();
     const safeSound = (/^https?:\/\//i.test(rawSound) || /^data:audio\//i.test(rawSound)) ? rawSound : "";
     const volume = Math.max(0, Math.min(1, (Number(blockSoundVolume.value) || 65) / 100));
+    const paidUnlocked = isUnlimitedUnlocked();
+    const soundEnabledValue = paidUnlocked && imageBlockSoundEnabled.value === "on";
+    const soundToSave = paidUnlocked ? safeSound : "";
+
+    if (!paidUnlocked && (imageBlockSoundEnabled.value === "on" || safeSound)) {
+      imageBlockSoundEnabled.value = "off";
+      setSoundPreview("");
+      promptUpgrade("Bonk sounds and custom uploads are part of Unlimited Bonk. Upgrade on the Pricing Preview to unlock them.");
+    }
 
     chrome.storage.local.set({
       censorGlyph: glyph,
       imageBlockMode: mode,
       replacementImageUrl: safeReplacement,
-      imageBlockSoundEnabled: imageBlockSoundEnabled.value === "on",
-      blockSoundDataUrl: safeSound,
+      imageBlockSoundEnabled: soundEnabledValue,
+      blockSoundDataUrl: soundToSave,
       blockSoundVolume: volume
     }, () => {
       if (chrome.runtime.lastError) {

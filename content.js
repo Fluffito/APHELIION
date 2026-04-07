@@ -229,6 +229,9 @@ let pendingBlockSound = false;
 let activeCustomBlockAudio = null;
 const FREE_IMAGE_LIMIT = 50;
 const PLAN_UNLIMITED = "unlimited-bonk";
+const UPGRADE_URL = "https://fluffito.github.io/APHELIION/#pricing";
+let imageLimitNoticeShown = false;
+let featureGateNoticeTimer = null;
 
 // --- helpers ---
 function log(...args) { if (DEBUG) console.log("[aphelion]", ...args); }
@@ -470,6 +473,47 @@ function currentBlockedImageCount() {
   return document.querySelectorAll(`img[${IMAGE_PROCESSED_FLAG}="1"]`).length;
 }
 
+function showUpgradeNotice(message) {
+  if (imageLimitNoticeShown || !document || !document.body) return;
+  imageLimitNoticeShown = true;
+
+  const notice = document.createElement("div");
+  notice.setAttribute("data-aphelion-upgrade-notice", "1");
+  notice.style.cssText = [
+    "position:fixed",
+    "right:16px",
+    "bottom:16px",
+    "z-index:2147483647",
+    "max-width:320px",
+    "padding:12px 14px",
+    "border-radius:14px",
+    "border:1px solid rgba(155,107,255,0.45)",
+    "background:rgba(12,12,18,0.96)",
+    "box-shadow:0 16px 36px rgba(0,0,0,0.35)",
+    "color:#f3f0ff",
+    "font:13px/1.45 system-ui,sans-serif"
+  ].join(";");
+
+  const text = document.createElement("div");
+  text.textContent = message;
+
+  const link = document.createElement("a");
+  link.href = UPGRADE_URL;
+  link.target = "_blank";
+  link.rel = "noreferrer noopener";
+  link.textContent = "See pricing";
+  link.style.cssText = "display:inline-block;margin-top:8px;color:#c7b3ff;font-weight:700;text-decoration:none;";
+
+  notice.appendChild(text);
+  notice.appendChild(link);
+  document.body.appendChild(notice);
+
+  clearTimeout(featureGateNoticeTimer);
+  featureGateNoticeTimer = setTimeout(() => {
+    try { notice.remove(); } catch (error) {}
+  }, 6500);
+}
+
 function collectImageSignals(img) {
   if (!img || img.nodeType !== Node.ELEMENT_NODE) return "";
   const parts = [];
@@ -569,6 +613,7 @@ function scanSingleImage(img) {
   if (isImageBlockedByPatterns(img)) {
     if (!alreadyBlocked && !isUnlimitedPlan() && currentBlockedImageCount() >= FREE_IMAGE_LIMIT) {
       removeImageBlock(img);
+      showUpgradeNotice(`Free blocks up to ${FREE_IMAGE_LIMIT} images per page. Upgrade to Unlimited Bonk for unlimited image blocking.`);
       return;
     }
     applyImageBlock(img);
@@ -646,8 +691,9 @@ function loadBlacklist(cb) {
       imageBlockMode = normalizeImageMode(res?.imageBlockMode);
       replacementImageUrl = safeReplacementUrl(res?.replacementImageUrl);
       subscriptionPlan = normalizePlanTier(res?.planTier);
-      blockSoundEnabled = Boolean(res?.imageBlockSoundEnabled);
-      blockSoundDataUrl = safeSoundUrl(res?.blockSoundDataUrl);
+      const paidUnlocked = subscriptionPlan === PLAN_UNLIMITED;
+      blockSoundEnabled = paidUnlocked && Boolean(res?.imageBlockSoundEnabled);
+      blockSoundDataUrl = paidUnlocked ? safeSoundUrl(res?.blockSoundDataUrl) : "";
       blockSoundVolume = normalizeSoundVolume(res?.blockSoundVolume);
       log("loaded blacklist", aphelionEntries.length, "glyph:", censorGlyph, "plan:", subscriptionPlan, "sound:", blockSoundEnabled ? "on" : "off");
       if (worker) {
@@ -937,6 +983,8 @@ if (typeof window !== "undefined") {
         "blockSoundVolume",
         "planTier"
       ], (res) => {
+        const planTier = normalizePlanTier(res?.planTier);
+        const paidUnlocked = planTier === PLAN_UNLIMITED;
         window.postMessage({
           sender: "aphelion-extension",
           type: "APHELION_WEBSITE_SETTINGS",
@@ -944,10 +992,10 @@ if (typeof window !== "undefined") {
             censorGlyph: typeof res?.censorGlyph === "string" ? res.censorGlyph : "✦✦✦",
             imageBlockMode: normalizeImageMode(res?.imageBlockMode),
             replacementImageUrl: safeReplacementUrl(res?.replacementImageUrl),
-            imageBlockSoundEnabled: Boolean(res?.imageBlockSoundEnabled),
-            blockSoundDataUrl: safeSoundUrl(res?.blockSoundDataUrl),
+            imageBlockSoundEnabled: paidUnlocked && Boolean(res?.imageBlockSoundEnabled),
+            blockSoundDataUrl: paidUnlocked ? safeSoundUrl(res?.blockSoundDataUrl) : "",
             blockSoundVolume: normalizeSoundVolume(res?.blockSoundVolume),
-            planTier: normalizePlanTier(res?.planTier)
+            planTier
           }
         }, "*");
       });
@@ -956,29 +1004,38 @@ if (typeof window !== "undefined") {
 
     if (msg.type === "APHELION_WEBSITE_SAVE_SETTINGS") {
       const settings = msg.settings && typeof msg.settings === "object" ? msg.settings : {};
-      const payload = {
-        censorGlyph: typeof settings.censorGlyph === "string" && settings.censorGlyph.trim() ? settings.censorGlyph.trim().slice(0, 20) : "✦✦✦",
-        imageBlockMode: normalizeImageMode(settings.imageBlockMode),
-        replacementImageUrl: safeReplacementUrl(settings.replacementImageUrl),
-        imageBlockSoundEnabled: Boolean(settings.imageBlockSoundEnabled),
-        blockSoundDataUrl: safeSoundUrl(settings.blockSoundDataUrl),
-        blockSoundVolume: normalizeSoundVolume(settings.blockSoundVolume)
-      };
 
-      chrome.storage.local.set(payload, () => {
-        const errorMessage = chrome.runtime.lastError ? (chrome.runtime.lastError.message || "SYNC_FAILED") : "";
-        window.postMessage({
-          sender: "aphelion-extension",
-          type: "APHELION_WEBSITE_SYNC_ACK",
-          ok: !errorMessage,
-          error: errorMessage
-        }, "*");
+      chrome.storage.local.get(["planTier"], (planRes) => {
+        const planTier = normalizePlanTier(planRes?.planTier);
+        const paidUnlocked = planTier === PLAN_UNLIMITED;
+        const wantsPaidSound = Boolean(settings.imageBlockSoundEnabled) || Boolean(safeSoundUrl(settings.blockSoundDataUrl));
+        const payload = {
+          censorGlyph: typeof settings.censorGlyph === "string" && settings.censorGlyph.trim() ? settings.censorGlyph.trim().slice(0, 20) : "✦✦✦",
+          imageBlockMode: normalizeImageMode(settings.imageBlockMode),
+          replacementImageUrl: safeReplacementUrl(settings.replacementImageUrl),
+          imageBlockSoundEnabled: paidUnlocked && Boolean(settings.imageBlockSoundEnabled),
+          blockSoundDataUrl: paidUnlocked ? safeSoundUrl(settings.blockSoundDataUrl) : "",
+          blockSoundVolume: normalizeSoundVolume(settings.blockSoundVolume)
+        };
 
-        if (!errorMessage) {
-          loadBlacklist(() => {
-            scheduleFullRescan(50);
-          });
-        }
+        chrome.storage.local.set(payload, () => {
+          const runtimeError = chrome.runtime.lastError ? (chrome.runtime.lastError.message || "SYNC_FAILED") : "";
+          const gateError = !paidUnlocked && wantsPaidSound ? "PAID_FEATURE_REQUIRES_UNLIMITED_BONK" : "";
+          const errorMessage = runtimeError || gateError;
+
+          window.postMessage({
+            sender: "aphelion-extension",
+            type: "APHELION_WEBSITE_SYNC_ACK",
+            ok: !errorMessage,
+            error: errorMessage
+          }, "*");
+
+          if (!runtimeError) {
+            loadBlacklist(() => {
+              scheduleFullRescan(50);
+            });
+          }
+        });
       });
     }
   });

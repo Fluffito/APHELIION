@@ -38,6 +38,8 @@
   const soundFile = document.getElementById("siteSoundFile");
   const status = document.getElementById("siteSettingsStatus");
   const testBonkBtn = document.getElementById("siteTestBonkBtn");
+  const PLAN_UNLIMITED = "unlimited-bonk";
+  let currentPlanTier = "free";
   let syncTimer = null;
 
   if (!menuToggle || !menuClose || !overlay || !panel || !form || !tabButtons.length || !tabPanels.length || !censorGlyph || !customGlyph || !imageMode || !replacementImageUrl || !previewGlyph || !previewSummary || !imageDropzone || !imagePickerBtn || !imageResetBtn || !imagePreview || !imageFile || !soundEnabled || !soundVolume || !soundVolumeValue || !soundUrl || !soundDropzone || !soundPickerBtn || !soundResetBtn || !soundPreview || !soundFile || !status || !testBonkBtn) {
@@ -73,6 +75,20 @@
     soundVolumeValue.textContent = `${percent}%`;
   }
 
+  function isUnlimitedPlan() {
+    return currentPlanTier === PLAN_UNLIMITED;
+  }
+
+  function promptPaidUpgrade(message, jumpToPricing = false) {
+    soundEnabled.value = "off";
+    setSoundPreview("");
+    updateLivePreview();
+    setStatus(message || "Bonk sounds are part of Unlimited Bonk. See Pricing Preview to unlock them.");
+    if (jumpToPricing) {
+      window.location.hash = "pricing";
+    }
+  }
+
   function updateLivePreview() {
     const glyph = String(customGlyph.value || censorGlyph.value || DEFAULTS.censorGlyph).trim() || DEFAULTS.censorGlyph;
     previewGlyph.textContent = glyph;
@@ -83,9 +99,11 @@
         ? "replace"
         : "blur";
     const hasCustomSound = Boolean(String(soundUrl.value || soundPreview.getAttribute("src") || "").trim());
-    const soundLabel = soundEnabled.value === "on"
-      ? (hasCustomSound ? "on with your custom sound" : "on")
-      : "off";
+    const soundLabel = !isUnlimitedPlan()
+      ? "locked on the Free plan"
+      : soundEnabled.value === "on"
+        ? (hasCustomSound ? "on with your custom sound" : "on")
+        : "off";
     previewSummary.textContent = `Images will ${imageLabel} and bonk sounds are ${soundLabel}.`;
   }
 
@@ -128,6 +146,10 @@
   }
 
   function openSoundPicker() {
+    if (!isUnlimitedPlan()) {
+      promptPaidUpgrade("Bonk sounds are part of Unlimited Bonk. See Pricing Preview to unlock them.", true);
+      return;
+    }
     try {
       if (typeof soundFile.showPicker === "function") {
         soundFile.showPicker();
@@ -184,6 +206,10 @@
   }
 
   function handleSoundFile(file) {
+    if (!isUnlimitedPlan()) {
+      promptPaidUpgrade("Custom bonk uploads are part of Unlimited Bonk. See Pricing Preview to unlock them.", true);
+      return;
+    }
     if (!file) return;
     if (!file.type || !file.type.startsWith("audio/")) {
       setStatus("Please choose an audio file such as MP3, WAV, or OGG.");
@@ -212,6 +238,7 @@
   }
 
   function applySettings(settings) {
+    currentPlanTier = settings?.planTier === PLAN_UNLIMITED ? PLAN_UNLIMITED : "free";
     const glyphValue = String(settings.censorGlyph || DEFAULTS.censorGlyph).trim() || DEFAULTS.censorGlyph;
     const presetMatch = Array.from(censorGlyph.options).find((option) => option.value === glyphValue);
     censorGlyph.value = presetMatch ? presetMatch.value : DEFAULTS.censorGlyph;
@@ -219,8 +246,8 @@
     imageMode.value = ["blur", "hide", "replace"].includes(settings.imageBlockMode) ? settings.imageBlockMode : DEFAULTS.imageBlockMode;
     replacementImageUrl.value = typeof settings.replacementImageUrl === "string" ? settings.replacementImageUrl : "";
     setImagePreview(replacementImageUrl.value);
-    soundEnabled.value = settings.imageBlockSoundEnabled ? "on" : "off";
-    soundUrl.value = typeof settings.blockSoundDataUrl === "string" ? settings.blockSoundDataUrl : "";
+    soundEnabled.value = isUnlimitedPlan() && settings.imageBlockSoundEnabled ? "on" : "off";
+    soundUrl.value = isUnlimitedPlan() && typeof settings.blockSoundDataUrl === "string" ? settings.blockSoundDataUrl : "";
     setSoundPreview(soundUrl.value);
     soundVolume.value = String(Math.max(0, Math.min(100, Math.round((Number(settings.blockSoundVolume) || DEFAULTS.blockSoundVolume) * 100))));
     updateVolumeLabel();
@@ -237,8 +264,8 @@
       censorGlyph: chosenGlyph,
       imageBlockMode: imageMode.value,
       replacementImageUrl: safeReplacement,
-      imageBlockSoundEnabled: soundEnabled.value === "on",
-      blockSoundDataUrl: safeSound,
+      imageBlockSoundEnabled: isUnlimitedPlan() && soundEnabled.value === "on",
+      blockSoundDataUrl: isUnlimitedPlan() ? safeSound : "",
       blockSoundVolume: Math.max(0, Math.min(1, (Number(soundVolume.value) || 65) / 100))
     };
   }
@@ -312,6 +339,10 @@
   }
 
   function playPreviewBonk() {
+    if (!isUnlimitedPlan()) {
+      promptPaidUpgrade("Bonk sounds are part of Unlimited Bonk. See Pricing Preview to unlock them.", true);
+      return;
+    }
     const customSound = String(soundUrl.value || soundPreview.getAttribute("src") || "").trim();
     const volume = Math.max(0, Math.min(1, (Number(soundVolume.value) || 65) / 100));
     if (!customSound) {
@@ -340,6 +371,10 @@
 
     if (msg.type === "APHELION_WEBSITE_SYNC_ACK") {
       clearTimeout(syncTimer);
+      if (!msg.ok && /PAID_FEATURE_REQUIRES_UNLIMITED_BONK/i.test(String(msg.error || ""))) {
+        promptPaidUpgrade("Bonk sounds are locked on the Free plan. See Pricing Preview to unlock them.", true);
+        return;
+      }
       setStatus(msg.ok ? "Saved on the site and synced to APHELION." : `Could not sync to the extension: ${msg.error || "unknown error"}`);
     }
   });
@@ -357,15 +392,28 @@
     updateVolumeLabel();
     syncSettings();
   });
-  [censorGlyph, customGlyph, imageMode, soundEnabled].forEach((element) => {
+  [censorGlyph, customGlyph, imageMode].forEach((element) => {
     element.addEventListener("change", () => syncSettings());
     element.addEventListener("input", () => syncSettings());
+  });
+  soundEnabled.addEventListener("change", () => {
+    if (soundEnabled.value === "on" && !isUnlimitedPlan()) {
+      promptPaidUpgrade("Bonk sounds are part of Unlimited Bonk. See Pricing Preview to unlock them.", true);
+      syncSettings();
+      return;
+    }
+    syncSettings();
   });
   replacementImageUrl.addEventListener("input", () => {
     setImagePreview(replacementImageUrl.value.trim());
     syncSettings();
   });
   soundUrl.addEventListener("input", () => {
+    if (!isUnlimitedPlan() && soundUrl.value.trim()) {
+      promptPaidUpgrade("Custom bonk uploads are part of Unlimited Bonk. See Pricing Preview to unlock them.", true);
+      syncSettings();
+      return;
+    }
     setSoundPreview(soundUrl.value.trim());
     syncSettings();
   });
