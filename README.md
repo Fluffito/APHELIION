@@ -40,7 +40,14 @@ The website is configured for GitHub Pages using the `docs/` folder.
 - The serverless routes now live under `api/` (`webhooks`, `create-checkout-session`, `checkout-status`, `generateVariants`)
 - Set the Stripe webhook URL to `https://YOUR-VERCEL-DOMAIN/api/webhooks`
 - Subscribe to `checkout.session.completed`
-- Add `STRIPE_SECRET_KEY` and `STRIPE_WEBHOOK_SECRET` in Vercel environment variables
+- Add these Vercel environment variables:
+  - `STRIPE_SECRET_KEY`
+  - `STRIPE_WEBHOOK_SECRET`
+  - `SUPABASE_URL`
+  - `SUPABASE_SERVICE_ROLE_KEY`
+  - `RESEND_API_KEY` *(optional but recommended for automatic backup emails)*
+  - `LICENSE_FROM_EMAIL` *(for example `APHELION <hello@yourdomain.com>`)*
+  - `LICENSE_REPLY_TO_EMAIL` *(optional support inbox)*
 
 ## 📌 Roadmap
 

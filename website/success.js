@@ -47,8 +47,12 @@
     if (licenseKeyOutput) {
       licenseKeyOutput.textContent = data.licenseKey || "Unavailable";
     }
-    const buyerEmail = data?.email ? ` for ${data.email}` : "";
-    setStatus(`${data.licenseType || "Paid plan"} is ready${buyerEmail}. Copy the key below now and keep your purchase email as a backup for Restore Purchase.`);
+    const emailBackupNote = data?.email && data?.emailBackupConfigured
+      ? ` A backup copy is also being emailed to ${data.email}.`
+      : data?.email
+        ? ` You can also use ${data.email} with Restore Purchase later.`
+        : " Keep your purchase email as a backup for Restore Purchase.";
+    setStatus(`${data.licenseType || "Paid plan"} is ready. Copy the key below now.${emailBackupNote}`);
   }
 
   async function fetchJsonWithRetry(url, attempts = 5) {

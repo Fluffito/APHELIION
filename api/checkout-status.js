@@ -3,6 +3,8 @@ const { createLicenseKey } = require("../license-tools");
 
 const STRIPE_SECRET_KEY = String(process.env.STRIPE_SECRET_KEY || "").trim();
 const CORS_ORIGIN = String(process.env.CORS_ORIGIN || "*");
+const RESEND_API_KEY = String(process.env.RESEND_API_KEY || "").trim();
+const EMAIL_BACKUP_CONFIGURED = Boolean(RESEND_API_KEY);
 
 const PLAN_CONFIG = {
   "unlimited-monthly": {
@@ -174,6 +176,7 @@ module.exports = async function handler(req, res) {
       email: session?.customer_details?.email || session?.customer_email || "",
       licenseType: plan.licenseType,
       licenseKey,
+      emailBackupConfigured: EMAIL_BACKUP_CONFIGURED,
       instructions: "Paste this key into the APHELION popup and click Unlock or Restore Purchase."
     });
   } catch (error) {
