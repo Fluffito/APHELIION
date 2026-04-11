@@ -1041,10 +1041,12 @@ if (typeof window !== "undefined") {
         "imageBlockSoundEnabled",
         "blockSoundDataUrl",
         "blockSoundVolume",
-        "planTier"
+        "planTier",
+        "noAdsKitsune"
       ], (res) => {
         const planTier = normalizePlanTier(res?.planTier);
         const paidUnlocked = planTier === PLAN_UNLIMITED;
+        const noAdsKitsune = Boolean(res?.noAdsKitsune);
         window.postMessage({
           sender: "aphelion-extension",
           type: "APHELION_WEBSITE_SETTINGS",
@@ -1055,7 +1057,8 @@ if (typeof window !== "undefined") {
             imageBlockSoundEnabled: paidUnlocked && Boolean(res?.imageBlockSoundEnabled),
             blockSoundDataUrl: paidUnlocked ? safeSoundUrl(res?.blockSoundDataUrl) : "",
             blockSoundVolume: normalizeSoundVolume(res?.blockSoundVolume),
-            planTier
+            planTier,
+            noAdsKitsune
           }
         }, "*");
       });
@@ -1065,9 +1068,10 @@ if (typeof window !== "undefined") {
     if (msg.type === "APHELION_WEBSITE_SAVE_SETTINGS") {
       const settings = msg.settings && typeof msg.settings === "object" ? msg.settings : {};
 
-      chrome.storage.local.get(["planTier"], (planRes) => {
+      chrome.storage.local.get(["planTier", "noAdsKitsune"], (planRes) => {
         const planTier = normalizePlanTier(planRes?.planTier);
         const paidUnlocked = planTier === PLAN_UNLIMITED;
+        const noAdsKitsune = Boolean(planRes?.noAdsKitsune);
         const wantsPaidSound = Boolean(settings.imageBlockSoundEnabled) || Boolean(safeSoundUrl(settings.blockSoundDataUrl));
         const payload = {
           censorGlyph: typeof settings.censorGlyph === "string" && settings.censorGlyph.trim() ? settings.censorGlyph.trim().slice(0, 20) : "✦✦✦",
@@ -1088,7 +1092,8 @@ if (typeof window !== "undefined") {
             type: "APHELION_WEBSITE_SYNC_ACK",
             ok: !errorMessage,
             error: errorMessage,
-            planTier
+            planTier,
+            noAdsKitsune
           }, "*");
 
           if (!runtimeError) {

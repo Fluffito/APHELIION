@@ -588,14 +588,44 @@ body.panel-open {
 
 .support-strip {
   margin: 18px 0 0;
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.support-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin-bottom: 12px;
 }
 
 .support-title {
-  margin-bottom: 10px;
+  margin-bottom: 6px;
   color: #948fd1;
   font-size: 0.85rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
+}
+
+.support-copy {
+  margin: 0;
+  color: #c6c3f7;
+  line-height: 1.6;
+}
+
+.support-badge {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(155, 107, 255, 0.12);
+  color: var(--violet-glow);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .support-grid {
@@ -605,13 +635,48 @@ body.panel-open {
 }
 
 .support-card {
+  min-height: 122px;
   padding: 14px 16px;
   border-radius: 14px;
   border: 1px dashed rgba(255, 255, 255, 0.12);
   background: rgba(255, 255, 255, 0.02);
   color: #aaa6d8;
   font-size: 0.92rem;
-  opacity: 0.82;
+  opacity: 0.92;
+}
+
+.support-card--ad {
+  display: grid;
+  gap: 8px;
+}
+
+.support-card--kitsune {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-style: solid;
+  border-color: rgba(155, 107, 255, 0.28);
+  background: radial-gradient(circle at top, rgba(155, 107, 255, 0.14), rgba(255, 255, 255, 0.03));
+  color: #efeaff;
+}
+
+.support-card-label {
+  color: #9f9ad8;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.support-card-title {
+  color: #f5f3ff;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.support-card-copy {
+  color: #c2bef2;
+  line-height: 1.5;
 }
 
 .kitsune-card {
@@ -622,8 +687,9 @@ body.panel-open {
 
 .kitsune {
   display: inline-block;
-  font-size: 1.2rem;
+  font-size: 1.8rem;
   animation: aphelion-spin 5s linear infinite;
+  filter: drop-shadow(0 0 12px rgba(155, 107, 255, 0.35));
 }
 
 @keyframes aphelion-spin {

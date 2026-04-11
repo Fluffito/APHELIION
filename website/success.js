@@ -39,7 +39,25 @@
     }
   }
 
+  function persistWebPerkState(data) {
+    try {
+      const raw = JSON.parse(localStorage.getItem("aphelionWebSettings") || "{}");
+      const current = raw && typeof raw === "object" ? raw : {};
+      const licenseType = String(data?.licenseType || "").toLowerCase();
+      const isUnlimited = /unlimited bonk|founder/i.test(licenseType);
+      const hasKitsune = /kitsune/i.test(licenseType);
+      localStorage.setItem("aphelionWebSettings", JSON.stringify({
+        ...current,
+        planTier: isUnlimited ? "unlimited-bonk" : (current.planTier || "free"),
+        noAdsKitsune: Boolean(current.noAdsKitsune || hasKitsune)
+      }));
+    } catch (error) {
+      console.warn("[aphelion success] could not persist web perk state:", error);
+    }
+  }
+
   function showLicense(data) {
+    persistWebPerkState(data);
     if (licensePanel) licensePanel.hidden = false;
     if (licenseTypeLabel) {
       licenseTypeLabel.textContent = `${data.licenseType || "APHELION"} key`;

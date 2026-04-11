@@ -7,7 +7,8 @@
     imageBlockSoundEnabled: false,
     blockSoundDataUrl: "",
     blockSoundVolume: 0.65,
-    planTier: "free"
+    planTier: "free",
+    noAdsKitsune: false
   };
 
   const menuToggle = document.getElementById("siteMenuToggle");
@@ -39,10 +40,14 @@
   const soundFile = document.getElementById("siteSoundFile");
   const status = document.getElementById("siteSettingsStatus");
   const testBonkBtn = document.getElementById("siteTestBonkBtn");
+  const supportModeNote = document.querySelector("[data-support-mode-note]");
+  const supportModeBadge = document.querySelector("[data-support-mode-badge]");
+  const supportSlots = Array.from(document.querySelectorAll("[data-aphelion-support-slot]"));
   const PLAN_FREE = "free";
   const PLAN_UNLIMITED = "unlimited-bonk";
   let currentPlanTier = PLAN_FREE;
   let hasConfirmedExtensionPlan = false;
+  let hasNoAdsKitsune = false;
   let syncTimer = null;
 
   if (!menuToggle || !menuClose || !overlay || !panel || !form || !tabButtons.length || !tabPanels.length || !censorGlyph || !customGlyph || !imageMode || !replacementImageUrl || !previewGlyph || !previewSummary || !imageDropzone || !imagePickerBtn || !imageResetBtn || !imagePreview || !imageFile || !soundEnabled || !soundVolume || !soundVolumeValue || !soundUrl || !soundDropzone || !soundPickerBtn || !soundResetBtn || !soundPreview || !soundFile || !status || !testBonkBtn) {
@@ -71,6 +76,57 @@
 
   function saveLocalSettings(settings) {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(settings));
+  }
+
+  function escapeHtml(value) {
+    return String(value == null ? "" : value)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  function updateSupportSlots() {
+    const noAdsActive = Boolean(hasNoAdsKitsune);
+
+    if (supportModeNote) {
+      supportModeNote.textContent = noAdsActive
+        ? "No-Ads Kitsune is active on this browser, so the support spots below have been swapped for spinning foxes."
+        : "These slots stay subtle by default and can later hold real sponsor or ad placements. No-Ads Kitsune swaps them into spinning foxes instead.";
+    }
+
+    if (supportModeBadge) {
+      supportModeBadge.textContent = noAdsActive ? "Kitsune Mode Active" : "Support Mode";
+    }
+
+    supportSlots.forEach((slot, index) => {
+      if (!slot) return;
+
+      if (noAdsActive) {
+        const fox = index % 2 === 0 ? "🦊" : "🦊✨";
+        slot.className = "support-card support-card--kitsune kitsune-card";
+        slot.innerHTML = `
+          <span class="kitsune" aria-hidden="true">${fox}</span>
+          <div>
+            <div class="support-card-label">Kitsune Mode</div>
+            <div class="support-card-title">Spinning Kitsune</div>
+            <div class="support-card-copy">No-Ads Kitsune replaced this support spot with a fox.</div>
+          </div>
+        `;
+        return;
+      }
+
+      const label = escapeHtml(slot.dataset.adLabel || "Support Slot");
+      const title = escapeHtml(slot.dataset.adTitle || "Quiet sponsor slot");
+      const copy = escapeHtml(slot.dataset.adCopy || "Reserved for a calm sponsor mention.");
+      slot.className = "support-card support-card--ad";
+      slot.innerHTML = `
+        <div class="support-card-label">${label}</div>
+        <div class="support-card-title">${title}</div>
+        <div class="support-card-copy">${copy}</div>
+      `;
+    });
   }
 
   function updateVolumeLabel() {
@@ -276,6 +332,9 @@
         hasConfirmedExtensionPlan = true;
       }
     }
+    if (typeof settings?.noAdsKitsune === "boolean") {
+      hasNoAdsKitsune = settings.noAdsKitsune;
+    }
     const glyphValue = String(settings.censorGlyph || DEFAULTS.censorGlyph).trim() || DEFAULTS.censorGlyph;
     const presetMatch = Array.from(censorGlyph.options).find((option) => option.value === glyphValue);
     censorGlyph.value = presetMatch ? presetMatch.value : DEFAULTS.censorGlyph;
@@ -289,6 +348,7 @@
     soundVolume.value = String(Math.max(0, Math.min(100, Math.round((Number(settings.blockSoundVolume) || DEFAULTS.blockSoundVolume) * 100))));
     updateVolumeLabel();
     updateLivePreview();
+    updateSupportSlots();
   }
 
   function readFormSettings() {
@@ -304,7 +364,8 @@
       imageBlockSoundEnabled: isUnlimitedPlan() && soundEnabled.value === "on",
       blockSoundDataUrl: isUnlimitedPlan() ? safeSound : "",
       blockSoundVolume: Math.max(0, Math.min(1, (Number(soundVolume.value) || 65) / 100)),
-      planTier: currentPlanTier
+      planTier: currentPlanTier,
+      noAdsKitsune: hasNoAdsKitsune
     };
   }
 
