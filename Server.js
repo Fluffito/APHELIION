@@ -18,7 +18,7 @@ const { createLicenseKey } = require("./license-tools");
 
 const app = express();
 const PORT = Number(process.env.PORT || 3000);
-const PUBLIC_SITE_URL = String(process.env.PUBLIC_SITE_URL || "https://fluffito.github.io/APHELIION").replace(/\/$/, "");
+const PUBLIC_SITE_URL = String(process.env.PUBLIC_SITE_URL || "https://fluffito.github.io").replace(/\/$/, "");
 const STRIPE_SECRET_KEY = String(process.env.STRIPE_SECRET_KEY || "").trim();
 
 app.use(bodyParser.json({ limit: "1mb" }));

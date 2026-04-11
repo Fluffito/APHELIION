@@ -6,7 +6,7 @@ APHELION is a browser extension built to bonk unwanted words, blur suspicious im
 
 ## 🌐 Live Website
 
-- **Website:** `https://fluffito.github.io/APHELIION/`
+- **Website:** `https://fluffito.github.io/`
 
 ## ✨ Current Bonk Powers
 
@@ -31,7 +31,7 @@ APHELION is a browser extension built to bonk unwanted words, blur suspicious im
 
 The website is configured for GitHub Pages using the `docs/` folder.
 
-- **GitHub Pages URL:** `https://fluffito.github.io/APHELIION/`
+- **GitHub Pages URL:** `https://fluffito.github.io/`
 - **Source:** `main` branch → `/docs`
 
 ### Stripe on Vercel

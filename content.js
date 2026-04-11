@@ -289,7 +289,7 @@ let pendingBlockSound = false;
 let activeCustomBlockAudio = null;
 const FREE_IMAGE_LIMIT = 50;
 const PLAN_UNLIMITED = "unlimited-bonk";
-const UPGRADE_URL = "https://fluffito.github.io/APHELIION/#pricing";
+const UPGRADE_URL = "https://fluffito.github.io/#pricing";
 let imageLimitNoticeShown = false;
 let featureGateNoticeTimer = null;
 

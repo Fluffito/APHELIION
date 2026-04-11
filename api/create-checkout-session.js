@@ -1,7 +1,7 @@
 const https = require("https");
 const querystring = require("querystring");
 
-const PUBLIC_SITE_URL = String(process.env.PUBLIC_SITE_URL || "https://fluffito.github.io/APHELIION").replace(/\/$/, "");
+const PUBLIC_SITE_URL = String(process.env.PUBLIC_SITE_URL || "https://fluffito.github.io").replace(/\/$/, "");
 const STRIPE_SECRET_KEY = String(process.env.STRIPE_SECRET_KEY || "").trim();
 const CORS_ORIGIN = String(process.env.CORS_ORIGIN || "*");
 

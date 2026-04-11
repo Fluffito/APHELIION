@@ -23,5 +23,5 @@ A quick store-safety review of APHELION found **no obvious malicious code patter
 
 ## Notes for store submission
 - Broad website access is expected for a content-filtering extension, but it should be explained clearly in the store listing
-- Keep the privacy policy URL public: `https://fluffito.github.io/APHELIION/privacy.html`
+- Keep the privacy policy URL public: `https://fluffito.github.io/privacy.html`
 - Re-test Free vs paid locks before submission

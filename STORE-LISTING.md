@@ -30,7 +30,7 @@ APHELION stores settings and blacklist data locally in the browser. Stripe handl
 Productivity
 
 ## Privacy policy URL
-https://fluffito.github.io/APHELIION/privacy.html
+https://fluffito.github.io/privacy.html
 
 ## One-sentence single purpose statement
 APHELION lets users filter and customize unwanted text and image content while browsing.
