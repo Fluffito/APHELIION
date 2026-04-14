@@ -1,3 +1,33 @@
+/* Style main navigation links to look like buttons */
+.main-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+  margin: 32px 0 24px;
+}
+.main-nav a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 12px 22px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 700;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s;
+  margin-bottom: 4px;
+}
+.main-nav a:hover, .main-nav a:focus {
+  background: linear-gradient(135deg, var(--violet), var(--violet-dark));
+  color: #fff;
+  box-shadow: 0 4px 16px rgba(155, 107, 255, 0.18);
+  border-color: rgba(155, 107, 255, 0.38);
+  outline: none;
+  transform: translateY(-1px);
+}
 :root {
   --bg: #0b0b0f;
   --panel: #14141a;
