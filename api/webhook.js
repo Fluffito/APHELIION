@@ -167,7 +167,7 @@ async function sendLicenseEmail({ email, licenseKey, licenseType, planKey, sessi
     subject: `Your ${licenseType || "APHELION"} license key`,
     html: `
       <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111">
-        <h2 style="margin-bottom:8px;">Thanks for supporting APHELION 💜</h2>
+        <h2 style="margin-bottom:8px;">Thanks for supporting APHELION now go enjoy this wild mess</h2>
         <p>Your purchase is complete, and your backup license key is ready.</p>
         <p><strong>Plan:</strong> ${safeLicenseType} (${safePlanKey})</p>
         <p><strong>License key:</strong><br /><code style="display:inline-block;padding:10px 12px;background:#f4f0ff;border-radius:8px;font-size:16px;">${safeLicenseKey}</code></p>
