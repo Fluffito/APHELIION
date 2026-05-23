@@ -47,10 +47,16 @@ function generateBackupLicenseKey(code) {
   };
 }
 
+const PRICE_CODE_MAP = {
+  [process.env.STRIPE_PRICE_UNLIMITED_MONTHLY]: "UNL",
+  [process.env.STRIPE_PRICE_UNLIMITED_QUARTERLY]: "UNL",
+  [process.env.STRIPE_PRICE_UNLIMITED_YEARLY]: "UNL",
+  [process.env.STRIPE_PRICE_KITSUNE_ONETIME]: "KIT",
+  [process.env.STRIPE_PRICE_KITSUNE_MONTHLY]: "KIT"
+};
+
 function getLicenseCodeFromPriceId(priceId) {
-  if (/UNLIMITED|MONTHLY|QUARTERLY|YEARLY/.test(priceId)) return "UNL";
-  if (/KITSUNE/.test(priceId)) return "KIT";
-  return "MAX";
+  return PRICE_CODE_MAP[priceId] || "MAX";
 }
 
 function getLicenseLabel(code) {
