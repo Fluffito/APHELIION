@@ -10,7 +10,7 @@
     "start": "node api/webhooks.js"
   },
   "engines": {
-    "node": "18.x"
+    "node": "24.x"
   },
   "dependencies": {
     "stripe": "^14.0.0",
