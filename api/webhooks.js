@@ -73,12 +73,6 @@ async function sendLicenseEmail(email, licenseKey, backupKey, licenseType, price
   }
 
   const replyToHeader = LICENSE_REPLY_TO_EMAIL ? { replyTo: LICENSE_REPLY_TO_EMAIL } : {};
-  const siteOrigin = (process.env.PUBLIC_SITE_URL || "https://fluffito.github.io").replace(/\/$/, "");
-  const successUrl = new URL("/docs/success.html", siteOrigin);
-  successUrl.searchParams.set("license_key", licenseKey);
-  successUrl.searchParams.set("license_type", licenseType);
-  successUrl.searchParams.set("email", email);
-  const successUrlString = successUrl.toString();
 
   const emailHtml = `
     <!DOCTYPE html>
@@ -121,8 +115,6 @@ async function sendLicenseEmail(email, licenseKey, backupKey, licenseType, price
             <li>Click <strong>Unlock</strong> or <strong>Restore Purchase</strong></li>
             <li>Enjoy your ${licenseType}!</li>
           </ol>
-
-          <a href="${successUrlString}" class="button">View License Online</a>
         </div>
 
         <div class="footer">
@@ -148,8 +140,7 @@ async function sendLicenseEmail(email, licenseKey, backupKey, licenseType, price
         licenseKey,
         backupKey,
         licenseType,
-        email,
-        successUrl: successUrlString
+        email
       };
     } else {
       payload.html = emailHtml;
