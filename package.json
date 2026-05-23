@@ -1,0 +1,23 @@
+{
+  "name": "aphelion-browser-extension",
+  "version": "1.0.0",
+  "description": "APHELION browser extension with Stripe payments and email license delivery",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vercel dev",
+    "build": "echo 'No build needed'",
+    "start": "node api/webhooks.js"
+  },
+  "engines": {
+    "node": "18.x"
+  },
+  "dependencies": {
+    "stripe": "^14.0.0",
+    "@supabase/supabase-js": "^2.38.0",
+    "resend": "^3.0.0"
+  },
+  "devDependencies": {
+    "vercel": "^33.0.0"
+  }
+}

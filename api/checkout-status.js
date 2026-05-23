@@ -1,186 +1,80 @@
-const https = require("https");
-const { createLicenseKey } = require("../license-tools");
+import Stripe from "stripe";
+import { createClient } from "@supabase/supabase-js";
 
-const STRIPE_SECRET_KEY = String(process.env.STRIPE_SECRET_KEY || "").trim();
-const CORS_ORIGIN = String(process.env.CORS_ORIGIN || "*");
-const RESEND_API_KEY = String(process.env.RESEND_API_KEY || "").trim();
-const EMAIL_BACKUP_CONFIGURED = Boolean(RESEND_API_KEY);
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-const PLAN_CONFIG = {
-  "unlimited-monthly": {
-    priceId: String(process.env.STRIPE_PRICE_UNLIMITED_MONTHLY || "").trim(),
-    licenseArg: "unlimited-bonk",
-    licenseType: "Unlimited Bonk"
-  },
-  "unlimited-quarterly": {
-    priceId: String(process.env.STRIPE_PRICE_UNLIMITED_QUARTERLY || "").trim(),
-    licenseArg: "unlimited-bonk",
-    licenseType: "Unlimited Bonk"
-  },
-  "unlimited-yearly": {
-    priceId: String(process.env.STRIPE_PRICE_UNLIMITED_YEARLY || "").trim(),
-    licenseArg: "unlimited-bonk",
-    licenseType: "Unlimited Bonk"
-  },
-  "kitsune-onetime": {
-    priceId: String(process.env.STRIPE_PRICE_KITSUNE_ONETIME || "").trim(),
-    licenseArg: "noads",
-    licenseType: "No-Ads Kitsune"
-  },
-  "kitsune-monthly": {
-    priceId: String(process.env.STRIPE_PRICE_KITSUNE_MONTHLY || "").trim(),
-    licenseArg: "noads",
-    licenseType: "No-Ads Kitsune"
-  }
-};
-
-function setCors(res) {
-  res.setHeader("Access-Control-Allow-Origin", CORS_ORIGIN);
-  res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Stripe-Signature");
-  res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-}
-
-function getPlanConfig(planKey) {
-  return PLAN_CONFIG[String(planKey || "").trim().toLowerCase()] || null;
-}
-
-function stripeRequest(path, method = "GET") {
-  return new Promise((resolve) => {
-    if (!STRIPE_SECRET_KEY) {
-      resolve({
-        ok: false,
-        status: 503,
-        data: { error: { message: "STRIPE_SECRET_KEY is not configured yet." } }
-      });
-      return;
-    }
-
-    const stripeReq = https.request({
-      hostname: "api.stripe.com",
-      port: 443,
-      path: `/v1${path}`,
-      method,
-      headers: {
-        Authorization: `Bearer ${STRIPE_SECRET_KEY}`
-      }
-    }, (stripeRes) => {
-      let raw = "";
-      stripeRes.on("data", (chunk) => {
-        raw += chunk;
-      });
-      stripeRes.on("end", () => {
-        let data = {};
-        try {
-          data = raw ? JSON.parse(raw) : {};
-        } catch {
-          data = { raw };
-        }
-        resolve({
-          ok: stripeRes.statusCode >= 200 && stripeRes.statusCode < 300,
-          status: stripeRes.statusCode || 500,
-          data
-        });
-      });
-    });
-
-    stripeReq.on("error", (error) => {
-      resolve({
-        ok: false,
-        status: 500,
-        data: { error: { message: error.message } }
-      });
-    });
-
-    stripeReq.end();
-  });
-}
-
-function getPlanKeyFromSession(session) {
-  const metaPlan = session?.metadata?.aphelion_plan;
-  if (metaPlan && PLAN_CONFIG[metaPlan]) return metaPlan;
-
-  const stripePriceId = session?.line_items?.data?.[0]?.price?.id;
-  if (!stripePriceId) return null;
-
-  return Object.keys(PLAN_CONFIG).find((key) => PLAN_CONFIG[key].priceId && PLAN_CONFIG[key].priceId === stripePriceId) || null;
-}
-
-function getBuyerReference(session) {
-  return session?.customer_details?.email
-    || session?.customer_email
-    || session?.customer
-    || session?.id
-    || `paid-${Date.now()}`;
-}
-
-module.exports = async function handler(req, res) {
-  setCors(res);
-
-  if (req.method === "OPTIONS") {
-    res.status(204).end();
-    return;
-  }
-
+export default async function handler(req, res) {
   if (req.method !== "GET") {
-    res.status(405).json({ ok: false, error: "METHOD_NOT_ALLOWED" });
-    return;
+    return res.status(405).json({ error: "Method not allowed", ok: false });
+  }
+
+  const { session_id } = req.query;
+
+  if (!session_id) {
+    return res.status(400).json({ error: "Missing session_id", ok: false });
   }
 
   try {
-    const sessionId = String(req.query?.session_id || "").trim();
-    if (!sessionId) {
-      res.status(400).json({ ok: false, error: "MISSING_SESSION_ID" });
-      return;
-    }
+    // Retrieve session from Stripe
+    const session = await stripe.checkout.sessions.retrieve(session_id);
 
-    if (!STRIPE_SECRET_KEY) {
-      res.status(503).json({ ok: false, error: "STRIPE_NOT_READY" });
-      return;
-    }
-
-    const stripe = await stripeRequest(`/checkout/sessions/${encodeURIComponent(sessionId)}?expand[]=line_items.data.price`);
-    if (!stripe.ok) {
-      res.status(stripe.status || 502).json({
-        ok: false,
-        error: "STRIPE_SESSION_LOOKUP_FAILED",
-        details: stripe.data?.error?.message || stripe.data
+    if (!session) {
+      return res.status(404).json({
+        error: "SESSION_NOT_FOUND",
+        details: "Stripe session not found",
+        ok: false
       });
-      return;
     }
 
-    const session = stripe.data || {};
-    const isPaid = session.payment_status === "paid" || session.status === "complete";
-    if (!isPaid) {
-      res.status(409).json({
-        ok: false,
+    if (session.payment_status !== "paid") {
+      return res.status(400).json({
         error: "SESSION_NOT_PAID",
-        paymentStatus: session.payment_status || "unknown",
-        status: session.status || "unknown"
+        details: "This checkout session has not been paid yet",
+        ok: false
       });
-      return;
     }
 
-    const planKey = getPlanKeyFromSession(session) || String(session?.metadata?.aphelion_plan || "");
-    const plan = getPlanConfig(planKey) || {
-      licenseArg: String(session?.metadata?.license_arg || "unlimited-bonk"),
-      licenseType: String(session?.metadata?.license_type || "APHELION Paid Plan")
-    };
+    const email = session.customer_email;
+    if (!email) {
+      return res.status(400).json({
+        error: "NO_EMAIL",
+        details: "No email associated with this session",
+        ok: false
+      });
+    }
 
-    const buyerReference = getBuyerReference(session);
-    const licenseKey = createLicenseKey(plan.licenseArg, buyerReference);
+    // Look up the purchase in Supabase
+    const { data: purchase, error: dbError } = await supabase
+      .from("aphelion_purchases")
+      .select("license_key, backup_license_key, license_type, email")
+      .eq("stripe_session_id", session_id)
+      .single();
 
-    res.status(200).json({
+    if (dbError || !purchase) {
+      console.warn("[checkout-status] Purchase not found in DB yet:", { session_id, email, dbError });
+      return res.status(202).json({
+        error: "PURCHASE_NOT_IN_DB_YET",
+        details: "Payment confirmed but license generation may still be processing. Try again in a moment.",
+        ok: false,
+        email
+      });
+    }
+
+    return res.status(200).json({
       ok: true,
-      sessionId,
-      plan: planKey || plan.licenseArg,
-      email: session?.customer_details?.email || session?.customer_email || "",
-      licenseType: plan.licenseType,
-      licenseKey,
-      emailBackupConfigured: EMAIL_BACKUP_CONFIGURED,
-      instructions: "Paste this key into the APHELION popup and click Unlock or Restore Purchase."
+      licenseKey: purchase.license_key,
+      backupLicenseKey: purchase.backup_license_key,
+      licenseType: purchase.license_type,
+      email: purchase.email,
+      emailBackupConfigured: true
     });
   } catch (error) {
-    console.error("checkout-status error:", error);
-    res.status(500).json({ ok: false, error: "CHECKOUT_STATUS_SERVER_ERROR" });
+    console.error("[checkout-status] Error:", error);
+    return res.status(500).json({
+      error: "CHECKOUT_STATUS_SERVER_ERROR",
+      details: error.message,
+      ok: false
+    });
   }
-};
+}

@@ -1,6 +1,7 @@
 {
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/webhooks", "destination": "/api/webhooks" },
     { "source": "/generateVariants", "destination": "/api/generateVariants" },
     { "source": "/create-checkout-session", "destination": "/api/create-checkout-session" },
     { "source": "/checkout-status", "destination": "/api/checkout-status" },
