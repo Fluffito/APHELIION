@@ -10,6 +10,7 @@ const LICENSE_SECRET = process.env.LICENSE_SECRET;
 const LICENSE_VERSION = "APH1";
 const LICENSE_FROM_EMAIL = process.env.LICENSE_FROM_EMAIL || "noreply@aphelion.dev";
 const LICENSE_REPLY_TO_EMAIL = process.env.LICENSE_REPLY_TO_EMAIL;
+const RESEND_TEMPLATE_ID = process.env.RESEND_TEMPLATE_ID;
 
 function computeLicenseChecksum(seed) {
   const raw = `${seed}|${LICENSE_SECRET}`;
@@ -122,13 +123,27 @@ async function sendLicenseEmail(email, licenseKey, backupKey, licenseType, price
   `;
 
   try {
-    const response = await resend.emails.send({
+    const payload = {
       from: LICENSE_FROM_EMAIL,
       to: email,
       subject: `Your APHELION ${licenseType} License Keys`,
-      html: emailHtml,
       ...replyToHeader
-    });
+    };
+
+    if (RESEND_TEMPLATE_ID) {
+      payload.template = RESEND_TEMPLATE_ID;
+      payload.input = {
+        licenseKey,
+        backupKey,
+        licenseType,
+        email,
+        successUrl: `https://fluffito.github.io/docs/success.html?license_key=${encodeURIComponent(licenseKey)}&license_type=${encodeURIComponent(licenseType)}&email=${encodeURIComponent(email)}`
+      };
+    } else {
+      payload.html = emailHtml;
+    }
+
+    const response = await resend.emails.send(payload);
 
     console.log("[webhook] Email sent to", email, "response:", response);
     return { ok: true, messageId: response.id };
