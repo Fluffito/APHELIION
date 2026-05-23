@@ -22,7 +22,6 @@ function computeLicenseChecksum(seed) {
 }
 
 function generateLicenseKey(code) {
-  // Generate random seed
   const seed = Array.from({ length: 4 }, () => Math.floor(Math.random() * 36).toString(36).toUpperCase()).join("");
   const checksum = computeLicenseChecksum(`${LICENSE_VERSION}-${code}-${seed}`);
   return {
@@ -35,7 +34,6 @@ function generateLicenseKey(code) {
 }
 
 function generateBackupLicenseKey(code) {
-  // Generate a second backup key for the same code
   const seed = Array.from({ length: 4 }, () => Math.floor(Math.random() * 36).toString(36).toUpperCase()).join("");
   const checksum = computeLicenseChecksum(`${LICENSE_VERSION}-${code}-${seed}`);
   return {
@@ -118,7 +116,7 @@ async function sendLicenseEmail(email, licenseKey, backupKey, licenseType, price
         </div>
 
         <div class="footer">
-          <p>If you have any questions, reply to this email or visit our support page.</p>
+          <p>If you have any questions, email aphelion.bex@gmail.com or visit our support page.</p>
           <p>© 2026 APHELION. All rights reserved.</p>
         </div>
       </div>
@@ -136,7 +134,7 @@ async function sendLicenseEmail(email, licenseKey, backupKey, licenseType, price
 
     if (RESEND_TEMPLATE_ID) {
       payload.template = RESEND_TEMPLATE_ID;
-      payload.input = {
+      payload.variables = {
         licenseKey,
         backupKey,
         licenseType,
@@ -195,7 +193,6 @@ async function handleCheckoutCompleted(event) {
   }
 
   try {
-    // Get line items to determine license type
     const lineItems = await stripe.checkout.sessions.listLineItems(sessionId);
     if (!lineItems || !lineItems.data || lineItems.data.length === 0) {
       console.error("[webhook] No line items found for session", sessionId);
@@ -206,14 +203,11 @@ async function handleCheckoutCompleted(event) {
     const licenseCode = getLicenseCodeFromPriceId(priceId);
     const licenseType = getLicenseLabel(licenseCode);
 
-    // Generate primary and backup license keys
     const primaryLicense = generateLicenseKey(licenseCode);
     const backupLicense = generateBackupLicenseKey(licenseCode);
 
-    // Send email with both keys
     const emailResult = await sendLicenseEmail(email, primaryLicense.key, backupLicense.key, licenseType, priceId);
 
-    // Store in Supabase
     const storeResult = await storePaymentRecord(
       email,
       sessionId,
