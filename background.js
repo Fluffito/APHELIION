@@ -272,26 +272,27 @@ function dedupePreserveOrder(arr) {
 
 function notifyAllTabs() {
   try {
-    chrome.tabs.query({}, (tabs) => {
-      if (chrome.runtime.lastError) {
-        if (LOG) console.warn("[BG] tabs.query error:", chrome.runtime.lastError);
-        return;
-      }
-      for (const t of tabs) {
-        try {
-          chrome.tabs.sendMessage(t.id, { type: "RELOAD_CENSOR" }, () => {
-            if (chrome.runtime.lastError && LOG) {
-              const msg = chrome.runtime.lastError.message || "unknown tab message error";
-              // Expected on tabs without content script or restricted pages.
-              if (!/Receiving end does not exist|The message port closed/i.test(msg)) {
-                console.warn("[BG] tab message warning", t.id, msg);
+    // 1. Get the current license state first
+    getStoredLicenseState((state) => {
+      chrome.tabs.query({}, (tabs) => {
+        if (chrome.runtime.lastError) return;
+
+        for (const t of tabs) {
+          try {
+            // 2. Send the message WITH the state (noAdsKitsune boolean)
+            chrome.tabs.sendMessage(t.id, { 
+              type: "RELOAD_CENSOR", 
+              noAdsKitsune: state.noAdsKitsune // <--- HERE IT IS!
+            }, () => {
+              if (chrome.runtime.lastError && LOG) {
+                // Ignore errors for tabs that aren't ready
               }
-            }
-          });
-        } catch (err) {
-          if (LOG) console.warn("[BG] sendMessage error for tab", t.id, err);
+            });
+          } catch (err) {
+            if (LOG) console.warn("[BG] sendMessage error for tab", t.id, err);
+          }
         }
-      }
+      });
     });
   } catch (err) {
     if (LOG) console.error("[BG] notifyAllTabs error:", err);

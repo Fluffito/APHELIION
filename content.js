@@ -1039,11 +1039,18 @@ chrome.storage.onChanged.addListener((changes, area) => {
 // message listener (allow background to trigger reload)
 chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
   if (!msg || typeof msg !== "object") return;
+  
   if (msg.type === "RELOAD_CENSOR") {
     loadBlacklist(() => {
       if (worker) try { worker.postMessage({ type: "updateBlacklist", blacklist: aphelionEntries }); } catch (e) {}
       scheduleFullRescan(50);
+      
+      // APHELION: Kitsune Swap Activation
+      if (msg.noAdsKitsune) {
+        startKitsuneEngine();
+      }
     });
+    
     sendResponse({ ok: true });
     return true;
   }
@@ -1137,3 +1144,31 @@ loadBlacklist(() => {
   scheduleFullRescan(9000);
   log("bootstrapped, entries:", aphelionEntries.length);
 });
+// --- APHELION: Kitsune Ad-Swapper Engine ---
+function startKitsuneEngine() {
+  if (document.querySelector('#aphelion-kitsune-style')) return; 
+
+  const style = document.createElement('style');
+  style.id = 'aphelion-kitsune-style';
+  style.textContent = `
+    .kitsune-spin {
+      width: 100%; height: 100%;
+      background: url('${chrome.runtime.getURL("kitsune.png")}') center/contain no-repeat;
+      animation: spin 2s linear infinite;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+  `;
+  document.head.appendChild(style);
+
+  const observer = new MutationObserver((mutations) => {
+    // Add your ad selectors here
+    const ads = document.querySelectorAll('.ad-container, .ads, .ad-unit, .sponsored'); 
+    ads.forEach(ad => {
+      if (!ad.classList.contains('kitsune-swapped')) {
+        ad.classList.add('kitsune-swapped');
+        ad.innerHTML = '<div class="kitsune-spin"></div>';
+      }
+    });
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
+}

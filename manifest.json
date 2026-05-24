@@ -50,7 +50,7 @@
   },
   "web_accessible_resources": [
   {
-    "resources": ["icons/*", "kitsune.png"], 
+    "resources": ["icons/*", "assets/*"],
     "matches": ["https://*/*", "http://*/*"]
   }
 ]
