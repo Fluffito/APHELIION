@@ -183,7 +183,23 @@ async function storePaymentRecord(email, sessionId, licenseKey, backupKey, licen
 async function handleCheckoutCompleted(event) {
   const session = event.data.object;
   const sessionId = session.id;
-  const email = session.customer_email;
+  let email = session.customer_email;
+
+  // If customer_email is not available, fetch full session details
+  if (!email) {
+    try {
+      const fullSession = await stripe.checkout.sessions.retrieve(sessionId, {
+        expand: ["customer", "payment_intent"]
+      });
+      
+      // Try multiple sources for email
+      email = fullSession.customer_email || fullSession.customer?.email || fullSession.payment_intent?.receipt_email;
+      
+      console.log("[webhook] Retrieved full session for email:", { sessionId, email });
+    } catch (fetchError) {
+      console.error("[webhook] Failed to fetch session details:", fetchError.message);
+    }
+  }
 
   console.log("[webhook] checkout.session.completed:", { sessionId, email });
 
