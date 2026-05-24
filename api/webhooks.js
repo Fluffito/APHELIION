@@ -5,7 +5,10 @@ import { Resend } from "resend";
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_ROLE_KEY);
 const resend = new Resend(process.env.RESEND_API_KEY);
-
+ 
+if (!process.env.RESEND_API_KEY) {
+  console.warn("[webhook] RESEND_API_KEY not configured; outbound emails will be skipped.");
+}
 const LICENSE_SECRET = process.env.LICENSE_SECRET;
 const LICENSE_VERSION = "APH1";
 const LICENSE_FROM_EMAIL = process.env.LICENSE_FROM_EMAIL || "noreply@aphelion.dev";
@@ -149,8 +152,12 @@ async function sendLicenseEmail(email, licenseKey, backupKey, licenseType, price
     console.log("[webhook] Email sent to", email, "response:", response);
     return { ok: true, messageId: response.id };
   } catch (error) {
+    // Surface more useful information for troubleshooting Resend failures
     console.error("[webhook] Failed to send email to", email, error);
-    return { ok: false, error: error.message };
+    const status = error?.status || error?.statusCode || (error?.response && error.response.status) || null;
+    const details = error?.message || (error?.response && JSON.stringify(error.response.data)) || String(error);
+    const reason = status === 401 ? "RESEND_API_KEY_INVALID" : "RESEND_SEND_ERROR";
+    return { ok: false, error: details, status, reason };
   }
 }
 
