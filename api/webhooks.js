@@ -183,28 +183,27 @@ async function storePaymentRecord(email, sessionId, licenseKey, backupKey, licen
 async function handleCheckoutCompleted(event) {
   const session = event.data.object;
   const sessionId = session.id;
-  let email = session.customer_email;
 
-  // If customer_email is not available, fetch full session details
-  if (!email) {
-    try {
-      const fullSession = await stripe.checkout.sessions.retrieve(sessionId, {
-        expand: ["customer", "payment_intent"]
-      });
-      
-      // Try multiple sources for email
-      email = fullSession.customer_email || fullSession.customer?.email || fullSession.payment_intent?.receipt_email;
-      
-      console.log("[webhook] Retrieved full session for email:", { sessionId, email });
-    } catch (fetchError) {
-      console.error("[webhook] Failed to fetch session details:", fetchError.message);
-    }
+  // Always fetch full session to ensure we have email
+  let email = null;
+  
+  try {
+    const fullSession = await stripe.checkout.sessions.retrieve(sessionId, {
+      expand: ["customer", "payment_intent"]
+    });
+    
+    // Try multiple sources for email (in order of preference)
+    email = fullSession.customer_email || fullSession.customer?.email || fullSession.payment_intent?.receipt_email;
+    
+    console.log("[webhook] Retrieved session details:", { sessionId, email, hasCustomer: !!fullSession.customer });
+  } catch (fetchError) {
+    console.error("[webhook] CRITICAL: Failed to fetch session details:", fetchError.message, "- this will cause email delivery to fail");
   }
 
   console.log("[webhook] checkout.session.completed:", { sessionId, email });
 
   if (!email) {
-    console.warn("[webhook] No email found in session", sessionId);
+    console.warn("[webhook] No email found in session", sessionId, "- customer email was not captured");
     return;
   }
 
