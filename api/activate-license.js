@@ -55,10 +55,11 @@ export default async function handler(req, res) {
     return res.status(400).json({ ok: false, error: "INVALID_LICENSE_KEY" });
   }
 
-  try {
+ try {
+    // 1. Find the purchase record first to ensure the key exists
     const { data: purchase, error: lookupError } = await supabase
       .from("aphelion_purchases")
-      .select("id, license_key, backup_license_key, license_code, license_type, activated_at")
+      .select("id, activated_at, license_code, license_type")
       .or(`license_key.eq.${parsed.cleanKey},backup_license_key.eq.${parsed.cleanKey}`)
       .limit(1)
       .single();
@@ -67,22 +68,25 @@ export default async function handler(req, res) {
       return res.status(404).json({ ok: false, error: "LICENSE_NOT_FOUND" });
     }
 
-    if (purchase.activated_at) {
-      return res.status(409).json({ ok: false, error: "LICENSE_ALREADY_ACTIVATED", details: "This license key has already been activated." });
-    }
-
+    // 2. ATOMIC UPDATE: Only update if activated_at IS CURRENTLY NULL
     const { data: updated, error: updateError } = await supabase
       .from("aphelion_purchases")
       .update({ activated_at: new Date().toISOString() })
       .eq("id", purchase.id)
+      .is("activated_at", null) // THE MAGIC FILTER
       .select("activated_at")
       .single();
 
+    // 3. If updateError exists or data is null, it means the key was ALREADY USED
     if (updateError || !updated) {
-      console.error("[activate-license] Failed to update activation state:", updateError);
-      return res.status(500).json({ ok: false, error: "ACTIVATION_UPDATE_FAILED" });
+      return res.status(409).json({ 
+        ok: false, 
+        error: "LICENSE_ALREADY_ACTIVATED", 
+        details: "This license key has already been used." 
+      });
     }
 
+    // 4. Success!
     return res.status(200).json({
       ok: true,
       licenseCode: purchase.license_code,
@@ -91,8 +95,11 @@ export default async function handler(req, res) {
       noAdsKitsune: getNoAdsKitsuneFromCode(purchase.license_code),
       activatedAt: updated.activated_at
     });
+    
   } catch (error) {
+    // ... your error handling
+  }
     console.error("[activate-license] Error:", error);
     return res.status(500).json({ ok: false, error: "ACTIVATION_SERVER_ERROR", details: error?.message || String(error) });
   }
-}
+
