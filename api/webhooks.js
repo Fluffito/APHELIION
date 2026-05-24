@@ -163,23 +163,29 @@ async function sendLicenseEmail(email, licenseKey, backupKey, licenseType, price
 
 async function storePaymentRecord(email, sessionId, licenseKey, backupKey, licenseCode, licenseType, emailSent = false) {
   try {
-    const { error } = await supabase
+    // Use upsert to make this operation idempotent (avoid duplicate key errors)
+    const payload = {
+      email: email.toLowerCase(),
+      stripe_session_id: sessionId,
+      license_key: licenseKey,
+      backup_license_key: backupKey,
+      license_code: licenseCode,
+      license_type: licenseType,
+      purchased_at: new Date().toISOString(),
+      email_sent: Boolean(emailSent)
+    };
+
+    const { data, error } = await supabase
       .from("aphelion_purchases")
-      .insert({
-        email: email.toLowerCase(),
-        stripe_session_id: sessionId,
-        license_key: licenseKey,
-        backup_license_key: backupKey,
-        license_code: licenseCode,
-        license_type: licenseType,
-        purchased_at: new Date().toISOString(),
-        email_sent: Boolean(emailSent)
-      });
+      .upsert(payload, { onConflict: "stripe_session_id" });
 
     if (error) {
       console.error("[webhook] Failed to store payment record:", error);
-      return { ok: false, error: error.message };
+      return { ok: false, error: error.message, details: error };
     }
+
+    const action = (data && data.length > 0) ? "upserted/updated" : "inserted";
+    console.log("[webhook] Payment record stored (idempotent):", { sessionId, action });
     return { ok: true };
   } catch (error) {
     console.error("[webhook] Error storing payment record:", error);
