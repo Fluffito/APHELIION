@@ -47,7 +47,7 @@ export default async function handler(req, res) {
     // Look up the purchase in Supabase
     const { data: purchase, error: dbError } = await supabase
       .from("aphelion_purchases")
-      .select("license_key, backup_license_key, license_code, license_type, email")
+      .select("license_key, backup_license_key, license_code, license_type, email, activated_at")
       .eq("stripe_session_id", session_id)
       .single();
 

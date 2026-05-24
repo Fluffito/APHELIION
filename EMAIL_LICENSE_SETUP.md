@@ -24,6 +24,7 @@ CREATE TABLE aphelion_purchases (
   license_code TEXT NOT NULL,
   license_type TEXT NOT NULL,
   purchased_at TIMESTAMP DEFAULT NOW(),
+  activated_at TIMESTAMP DEFAULT NULL,
   email_sent BOOLEAN DEFAULT false,
   created_at TIMESTAMP DEFAULT NOW()
 );

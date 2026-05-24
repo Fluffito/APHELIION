@@ -63,6 +63,28 @@ if (typeof globalThis.browser !== "undefined" && globalThis.chrome === globalThi
 }
 console.log("[content] content.js loaded on", document.location.href);
 
+function syncApiBaseFromPage() {
+  try {
+    const apiBase = window.localStorage.getItem("aphelionApiBase");
+    if (!apiBase) return;
+    const normalized = String(apiBase).trim().replace(/\/$/, "");
+    chrome.storage.local.get(["aphelionApiBase"], (res) => {
+      if (chrome.runtime.lastError) return;
+      if (String(res?.aphelionApiBase || "") !== normalized) {
+        chrome.storage.local.set({ aphelionApiBase: normalized }, () => {
+          if (chrome.runtime.lastError) {
+            console.warn("[content] failed to persist aphelionApiBase", chrome.runtime.lastError);
+          }
+        });
+      }
+    });
+  } catch (err) {
+    console.warn("[content] could not sync aphelionApiBase from page", err);
+  }
+}
+
+syncApiBaseFromPage();
+
 const DEBUG = true;
 const CENSOR_CLASS = "aphelion-censor-v5";
 const PROCESSED_FLAG = "data-aphelion-processed-v5";

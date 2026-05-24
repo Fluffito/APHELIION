@@ -69,6 +69,7 @@ const PLAN_UNLIMITED = "unlimited-bonk";
 const FREE_WORD_LIMIT = 50;
 const LICENSE_SECRET = "APHELION::KITSUNE::2026";
 const LICENSE_VERSION = "APH1";
+const LICENSE_API_BASE_KEY = "aphelionApiBase";
 
 function normalizePlanTier(value) {
   return value === PLAN_UNLIMITED ? PLAN_UNLIMITED : PLAN_FREE;
@@ -112,6 +113,54 @@ function parseLicenseKey(value) {
   };
 }
 
+function getStoredApiBase(cb) {
+  try {
+    chrome.storage.local.get([LICENSE_API_BASE_KEY], (res) => {
+      if (chrome.runtime.lastError) {
+        cb(null);
+        return;
+      }
+      const apiBase = typeof res?.[LICENSE_API_BASE_KEY] === "string"
+        ? String(res[LICENSE_API_BASE_KEY]).trim().replace(/\/$/, "")
+        : "";
+      cb(apiBase || null);
+    });
+  } catch (err) {
+    cb(null);
+  }
+}
+
+async function attemptRemoteActivation(licenseKey) {
+  const apiBase = await new Promise((resolve) => getStoredApiBase(resolve));
+  if (!apiBase) {
+    throw new Error("REMOTE_API_BASE_MISSING");
+  }
+
+  const url = `${apiBase}/activate-license`;
+  const response = await fetch(url, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ licenseKey })
+  });
+
+  let payload;
+  try {
+    payload = await response.json();
+  } catch (err) {
+    const error = new Error("REMOTE_ACTIVATION_RESPONSE_INVALID");
+    error.details = String(err);
+    throw error;
+  }
+
+  if (!response.ok || !payload?.ok) {
+    const error = new Error(payload?.error || `HTTP_${response.status}`);
+    error.details = payload?.details || null;
+    throw error;
+  }
+
+  return payload;
+}
+
 function getStoredLicenseState(cb) {
   try {
     chrome.storage.local.get(["planTier", "noAdsKitsune", "licenseType", "licenseKeyMasked", "licenseActivatedAt"], (res) => {
@@ -142,7 +191,7 @@ function activateLicenseKey(licenseKey, cb) {
   }
 
   getStoredLicenseState((current) => {
-    const payload = {
+    const localPayload = {
       planTier: parsed.planTier === PLAN_UNLIMITED ? PLAN_UNLIMITED : current.planTier,
       noAdsKitsune: Boolean(current.noAdsKitsune || parsed.noAdsKitsune),
       licenseType: parsed.licenseType,
@@ -150,13 +199,44 @@ function activateLicenseKey(licenseKey, cb) {
       licenseActivatedAt: new Date().toISOString()
     };
 
-    chrome.storage.local.set(payload, () => {
-      if (chrome.runtime.lastError) {
-        cb({ ok: false, error: chrome.runtime.lastError.message || "LICENSE_SAVE_FAILED" });
-        return;
+    getStoredApiBase(async (apiBase) => {
+      if (apiBase) {
+        try {
+          const remote = await attemptRemoteActivation(parsed.cleanKey);
+          const payload = {
+            planTier: remote.planTier || localPayload.planTier,
+            noAdsKitsune: typeof remote.noAdsKitsune === "boolean" ? remote.noAdsKitsune : localPayload.noAdsKitsune,
+            licenseType: remote.licenseType || localPayload.licenseType,
+            licenseKeyMasked: parsed.licenseKeyMasked,
+            licenseActivatedAt: remote.activatedAt || localPayload.licenseActivatedAt
+          };
+
+          chrome.storage.local.set(payload, () => {
+            if (chrome.runtime.lastError) {
+              cb({ ok: false, error: chrome.runtime.lastError.message || "LICENSE_SAVE_FAILED" });
+              return;
+            }
+            notifyAllTabs();
+            cb({ ok: true, ...payload });
+          });
+          return;
+        } catch (error) {
+          if (/(LICENSE_ALREADY_ACTIVATED|INVALID_LICENSE_KEY|LICENSE_NOT_FOUND)/.test(String(error.message))) {
+            cb({ ok: false, error: error.message, details: error.details || null });
+            return;
+          }
+          console.warn("[BG] remote license activation failed, falling back to local activation:", error);
+        }
       }
-      notifyAllTabs();
-      cb({ ok: true, ...payload });
+
+      chrome.storage.local.set(localPayload, () => {
+        if (chrome.runtime.lastError) {
+          cb({ ok: false, error: chrome.runtime.lastError.message || "LICENSE_SAVE_FAILED" });
+          return;
+        }
+        notifyAllTabs();
+        cb({ ok: true, ...localPayload });
+      });
     });
   });
 }

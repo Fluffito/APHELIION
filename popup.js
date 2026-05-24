@@ -450,7 +450,11 @@ document.addEventListener("DOMContentLoaded", () => {
       if (restoreBtn) restoreBtn.disabled = false;
 
       if (err || !resp?.ok) {
-        setStatus("That license key looks invalid. Double-check it and try again.", "error");
+        const errorCode = resp?.error || (err && err.message) || "INVALID_LICENSE_KEY";
+        const message = errorCode === "LICENSE_ALREADY_ACTIVATED"
+          ? "That license key has already been used. If you lost your key before activation, check your email for the backup key."
+          : "That license key looks invalid. Double-check it and try again.";
+        setStatus(message, "error");
         return;
       }
 
