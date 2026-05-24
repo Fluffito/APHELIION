@@ -46,7 +46,7 @@ The website is configured for GitHub Pages using the `docs/` folder.
   - `SUPABASE_URL`
   - `SUPABASE_SERVICE_ROLE_KEY`
   - `RESEND_API_KEY` *(optional but recommended for automatic backup emails)*
-  - `LICENSE_FROM_EMAIL` *(for example `APHELION <hello@yourdomain.com>`)*
+  - `LICENSE_FROM_EMAIL` *(for example `APHELION <hello@aphelion.click>`)*
   - `LICENSE_REPLY_TO_EMAIL` *(optional support inbox)*
 
 ## 📌 Roadmap

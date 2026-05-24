@@ -83,7 +83,7 @@ CREATE INDEX idx_aphelion_purchases_session_id ON aphelion_purchases(stripe_sess
 **From Resend:**
 - Go to [Resend Dashboard](https://resend.com/) → API Keys
 - Copy your **API Key** (starts with `re_`)
-- Your domain should be verified for `LICENSE_FROM_EMAIL` (e.g., noreply@yourdomain.com)
+- Your domain should be verified for `LICENSE_FROM_EMAIL` (e.g., APHELION <hello@aphelion.click>)
 
 ### Step 3: Update Environment Variables Locally
 
@@ -94,8 +94,8 @@ STRIPE_WEBHOOK_SECRET=whsec_xxxxx
 SUPABASE_URL=https://xxxxx.supabase.co
 SUPABASE_SERVICE_ROLE_KEY=eyJxxxxx
 RESEND_API_KEY=re_xxxxx
-LICENSE_FROM_EMAIL=noreply@yourdomain.com
-LICENSE_REPLY_TO_EMAIL=support@yourdomain.com
+LICENSE_FROM_EMAIL="APHELION <hello@aphelion.click>"
+LICENSE_REPLY_TO_EMAIL=aphelion.bex@gmail.com
 ```
 
 ### Step 4: Deploy to Vercel

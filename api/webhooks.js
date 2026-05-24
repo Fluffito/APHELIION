@@ -11,7 +11,7 @@ if (!process.env.RESEND_API_KEY) {
 }
 const LICENSE_SECRET = process.env.LICENSE_SECRET;
 const LICENSE_VERSION = "APH1";
-const LICENSE_FROM_EMAIL = process.env.LICENSE_FROM_EMAIL || "noreply@aphelion.dev";
+const LICENSE_FROM_EMAIL = process.env.LICENSE_FROM_EMAIL || "APHELION <hello@aphelion.click>";
 const LICENSE_REPLY_TO_EMAIL = process.env.LICENSE_REPLY_TO_EMAIL;
 const RESEND_TEMPLATE_ID = process.env.RESEND_TEMPLATE_ID;
 

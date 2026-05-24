@@ -48,8 +48,8 @@ SUPABASE_SERVICE_ROLE_KEY=eyJ...            # Service role key (NOT anon key)
 
 # From Resend Dashboard
 RESEND_API_KEY=re_xxxx                      # Your Resend API key
-LICENSE_FROM_EMAIL=noreply@yourdomain.com   # Email license keys come from
-LICENSE_REPLY_TO_EMAIL=support@yourdomain.com  # Optional, reply-to address
+LICENSE_FROM_EMAIL="APHELION <hello@aphelion.click>"   # Email license keys come from
+LICENSE_REPLY_TO_EMAIL=aphelion.bex@gmail.com  # Optional, reply-to address
 
 # Already in your .env
 LICENSE_SECRET=APHELION::KITSUNE::2026      # DO NOT CHANGE (used for key checksums)
