@@ -73,8 +73,6 @@ async function sendLicenseEmail(email, licenseKey, backupKey, licenseType, price
     return { ok: false, reason: "RESEND_NOT_CONFIGURED" };
   }
 
-  const replyToHeader = LICENSE_REPLY_TO_EMAIL ? { replyTo: LICENSE_REPLY_TO_EMAIL } : {};
-
   const emailHtml = `
     <!DOCTYPE html>
     <html>
@@ -132,7 +130,7 @@ async function sendLicenseEmail(email, licenseKey, backupKey, licenseType, price
       from: LICENSE_FROM_EMAIL,
       to: email,
       subject: `Your APHELION ${licenseType} License Keys`,
-      ...(LICENSE_REPLY_TO_EMAIL ? { replyTo: LICENSE_REPLY_TO_EMAIL } : {}),
+      ...(LICENSE_REPLY_TO_EMAIL ? { reply_to: LICENSE_REPLY_TO_EMAIL } : {}),
       ...(RESEND_TEMPLATE_ID
         ? {
             template: RESEND_TEMPLATE_ID,
