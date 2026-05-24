@@ -128,26 +128,28 @@ async function sendLicenseEmail(email, licenseKey, backupKey, licenseType, price
   `;
 
   try {
-    const payload = {
+    const mailRequest = {
       from: LICENSE_FROM_EMAIL,
       to: email,
       subject: `Your APHELION ${licenseType} License Keys`,
-      ...replyToHeader
+      ...(LICENSE_REPLY_TO_EMAIL ? { replyTo: LICENSE_REPLY_TO_EMAIL } : {}),
+      ...(RESEND_TEMPLATE_ID
+        ? {
+            template: RESEND_TEMPLATE_ID,
+            variables: {
+              licenseKey,
+              backupKey,
+              licenseType,
+              email
+            }
+          }
+        : {
+            html: emailHtml
+          })
     };
 
-    if (RESEND_TEMPLATE_ID) {
-      payload.template = RESEND_TEMPLATE_ID;
-      payload.variables = {
-        licenseKey,
-        backupKey,
-        licenseType,
-        email
-      };
-    } else {
-      payload.html = emailHtml;
-    }
-
-    const response = await resend.emails.send(payload);
+    console.log("[webhook] Sending Resend payload", { email, template: RESEND_TEMPLATE_ID ? RESEND_TEMPLATE_ID : null });
+    const response = await resend.emails.send(mailRequest);
 
     console.log("[webhook] Email sent to", email, "response:", response);
     return { ok: true, messageId: response.id };
