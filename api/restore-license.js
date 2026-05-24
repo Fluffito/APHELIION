@@ -19,7 +19,7 @@ export default async function handler(req, res) {
     // Get the most recent purchase for this email
     const { data: purchase, error: dbError } = await supabase
       .from("aphelion_purchases")
-      .select("license_key, backup_license_key, license_type, email, purchased_at")
+      .select("license_key, backup_license_key, license_code, license_type, email, purchased_at")
       .eq("email", normalizedEmail)
       .order("purchased_at", { ascending: false })
       .limit(1)
@@ -46,6 +46,7 @@ export default async function handler(req, res) {
       ok: true,
       licenseKey: purchase.license_key,
       backupLicenseKey: purchase.backup_license_key,
+      licenseCode: purchase.license_code,
       licenseType: purchase.license_type,
       email: purchase.email,
       purchasedAt: purchase.purchased_at

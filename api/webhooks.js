@@ -57,7 +57,28 @@ const PRICE_CODE_MAP = {
 };
 
 function getLicenseCodeFromPriceId(priceId) {
-  return PRICE_CODE_MAP[priceId] || "MAX";
+  return PRICE_CODE_MAP[priceId] || null;
+}
+
+async function inferLicenseCodeFromPrice(priceId) {
+  try {
+    const price = await stripe.prices.retrieve(priceId, { expand: ["product"] });
+    const product = price.product;
+    const textCandidates = [price.nickname, price.metadata && price.metadata.plan_code, product && product.name, product && product.metadata && product.metadata.plan_code]
+      .filter(Boolean)
+      .map((t) => String(t).toLowerCase());
+
+    for (const t of textCandidates) {
+      if (t.includes("unlimit") || t.includes("unl") || t.includes("unlimited")) return "UNL";
+      if (t.includes("kitsune") || t.includes("no-ads") || t.includes("noads") || t.includes("kit")) return "KIT";
+      if (t.includes("founder") || t.includes("max") || t.includes("founder bundle")) return "MAX";
+    }
+
+    return null;
+  } catch (err) {
+    console.warn("[webhook] Failed to infer license code from price:", priceId, err && err.message);
+    return null;
+  }
 }
 
 function getLicenseLabel(code) {
@@ -220,7 +241,28 @@ async function handleCheckoutCompleted(event) {
     }
 
     const priceId = lineItems.data[0].price.id;
-    const licenseCode = getLicenseCodeFromPriceId(priceId);
+    let licenseCode = getLicenseCodeFromPriceId(priceId);
+    let inferredFrom = null;
+
+    if (!licenseCode) {
+      // Try to infer from Stripe price/product metadata
+      licenseCode = await inferLicenseCodeFromPrice(priceId);
+      inferredFrom = licenseCode ? "inferred" : "not-inferred";
+    }
+
+    // If still unknown, fetch product name for logging and fallback to MAX
+    let productName = null;
+    if (!licenseCode) {
+      try {
+        const priceObj = await stripe.prices.retrieve(priceId, { expand: ["product"] });
+        productName = priceObj.nickname || (priceObj.product && priceObj.product.name) || null;
+      } catch (e) {
+        console.warn("[webhook] Could not fetch price/product name for priceId", priceId, e && e.message);
+      }
+      console.warn("[webhook] Unmapped Stripe priceId, falling back to 'MAX' (Founder Bundle)", { priceId, productName });
+      licenseCode = "MAX";
+    }
+
     const licenseType = getLicenseLabel(licenseCode);
 
     const primaryLicense = generateLicenseKey(licenseCode);
