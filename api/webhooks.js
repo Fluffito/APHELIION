@@ -94,63 +94,71 @@ async function sendLicenseEmail(email, licenseKey, backupKey, licenseType, price
     return { ok: false, reason: "RESEND_NOT_CONFIGURED" };
   }
 
-  const emailHtml = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8" />
-      <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #333; }
-        .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-        .header { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; padding: 30px; text-align: center; border-radius: 8px; }
-        .content { background: #f9fafb; padding: 20px; margin: 20px 0; border-radius: 8px; }
-        .license-box { background: white; border: 2px solid #7c3aed; padding: 15px; margin: 10px 0; font-family: 'Courier New', monospace; font-weight: bold; word-break: break-all; text-align: center; }
-        .footer { font-size: 12px; color: #666; text-align: center; margin-top: 20px; }
-        .button { background: #7c3aed; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; display: inline-block; margin: 10px 0; }
-      </style>
-    </head>
-    <body>
-      <div class="container">
-        <div class="header">
-          <h1>🦊 APHELION License Activated</h1>
-          <p>Thanks for your purchase!</p>
-        </div>
-
-        <div class="content">
-          <h2>Your ${licenseType}</h2>
-          <p>Your license is ready to use. Copy the key below and paste it into the APHELION extension popup to unlock your features.</p>
-
-          <h3>Primary License Key:</h3>
-          <div class="license-box">${licenseKey}</div>
-
-          <h3>Backup License Key:</h3>
-          <div class="license-box">${backupKey}</div>
-
-          <p style="color: #666; font-size: 14px;">Keep both keys safe. You can use either one to activate your license at any time.</p>
-
-          <h3>Next Steps:</h3>
-          <ol>
-            <li>Open the APHELION extension popup (click the fox icon in your toolbar)</li>
-            <li>Paste either license key into the text field</li>
-            <li>Click <strong>Unlock</strong> or <strong>Restore Purchase</strong></li>
-            <li>Enjoy your ${licenseType}!</li>
-          </ol>
-        </div>
-
-        <div class="footer">
-          <p>If you have any questions, email aphelion.bex@gmail.com or visit our support page.</p>
-          <p>© 2026 APHELION. All rights reserved.</p>
-        </div>
-      </div>
-    </body>
-    </html>
-  `;
+  const emailHtml = `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html dir="ltr" lang="en">
+  <head>
+    <meta content="width=device-width" name="viewport" />
+    <meta content="text/html; charset=UTF-8" http-equiv="Content-Type" />
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; line-height: 1.6; color: #333; }
+      .container { max-width: 600px; margin: 0 auto; padding: 20px; }
+      .header { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 100%); color: white; padding: 30px; text-align: center; border-radius: 8px; }
+      .content { background: #f9fafb; padding: 20px; margin: 20px 0; border-radius: 8px; }
+      .license-box { background: white; border: 2px solid #7c3aed; padding: 15px; margin: 10px 0; font-family: 'Courier New', monospace; font-weight: bold; word-break: break-all; text-align: center; }
+      .footer { font-size: 12px; color: #666; text-align: center; margin-top: 20px; }
+    </style>
+  </head>
+  <body style="background-color:#ffffff">
+    <table border="0" width="100%" cellpadding="0" cellspacing="0" role="presentation" align="center">
+      <tbody>
+        <tr>
+          <td style="background-color:#ffffff">
+            <table align="left" width="100%" border="0" cellpadding="0" cellspacing="0" role="presentation" style="max-width:600px;width:100%;background-color:#ffffff">
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="container">
+                      <div class="header">
+                        <h1>🦊 APHELION License Activated</h1>
+                        <p>Thanks for your purchase!</p>
+                      </div>
+                      <div class="content">
+                        <h2>Your ${licenseType}</h2>
+                        <p>Your license is ready to use. Copy the key below and paste it into the APHELION extension popup to unlock your features.</p>
+                        <h3>Primary License Key:</h3>
+                        <div class="license-box">
+                          <p style="margin:0">${licenseKey}</p>
+                        </div>
+                        <h3>Backup License Key:</h3>
+                        <div class="license-box">
+                          <p style="margin:0">${backupKey}</p>
+                        </div>
+                        <p style="color:#666;font-size:14px">Keep both keys safe. You can use either one to activate your license at any time.</p>
+                        <h3>Next Steps:</h3>
+                        <ol start="1" style="padding-left:1.1em">
+                          <li><p style="margin:0">Open the APHELION extension popup</p></li>
+                          <li><p style="margin:0">Paste either license key into the text field</p></li>
+                          <li><p style="margin:0">Click <strong>Unlock</strong> or <strong>Restore Purchase</strong></p></li>
+                          <li><p style="margin:0">Enjoy your ${licenseType}!</p></li>
+                        </ol>
+                      </div>
+                      <div class="footer">
+                        <p>If you have any questions, email <a href="mailto:aphelion.bex@gmail.com" style="color:#0670DB;text-decoration:underline">aphelion.bex@gmail.com</a></p>
+                        <p>© 2026 APHELION. All rights reserved.</p>
+                      </div>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </body>
+</html>`;
 
   try {
-    if (RESEND_TEMPLATE_ID) {
-      console.warn("[webhook] RESEND_TEMPLATE_ID is configured, but Resend template delivery is not used by this SDK path. Sending raw HTML instead.");
-    }
-
     const mailRequest = {
       from: LICENSE_FROM_EMAIL,
       to: email,
@@ -158,25 +166,17 @@ async function sendLicenseEmail(email, licenseKey, backupKey, licenseType, price
       ...(LICENSE_REPLY_TO_EMAIL ? { reply_to: LICENSE_REPLY_TO_EMAIL } : {}),
       html: emailHtml
     };
-
-    console.log("[webhook] Sending Resend payload", { email, reply_to: LICENSE_REPLY_TO_EMAIL ? LICENSE_REPLY_TO_EMAIL : null });
+    
     const response = await resend.emails.send(mailRequest);
-
-    console.log("[webhook] Email sent to", email, "response:", response);
     return { ok: true, messageId: response.id };
   } catch (error) {
-    // Surface more useful information for troubleshooting Resend failures
     console.error("[webhook] Failed to send email to", email, error);
-    const status = error?.status || error?.statusCode || (error?.response && error.response.status) || null;
-    const details = error?.message || (error?.response && JSON.stringify(error.response.data)) || String(error);
-    const reason = status === 401 ? "RESEND_API_KEY_INVALID" : "RESEND_SEND_ERROR";
-    return { ok: false, error: details, status, reason };
+    return { ok: false, error: String(error) };
   }
 }
 
 async function storePaymentRecord(email, sessionId, licenseKey, backupKey, licenseCode, licenseType, emailSent = false) {
   try {
-    // Use upsert to make this operation idempotent (avoid duplicate key errors)
     const payload = {
       email: email.toLowerCase(),
       stripe_session_id: sessionId,
@@ -187,21 +187,11 @@ async function storePaymentRecord(email, sessionId, licenseKey, backupKey, licen
       purchased_at: new Date().toISOString(),
       email_sent: Boolean(emailSent)
     };
-
     const { data, error } = await supabase
       .from("aphelion_purchases")
       .upsert(payload, { onConflict: "stripe_session_id" });
-
-    if (error) {
-      console.error("[webhook] Failed to store payment record:", error);
-      return { ok: false, error: error.message, details: error };
-    }
-
-    const action = (data && data.length > 0) ? "upserted/updated" : "inserted";
-    console.log("[webhook] Payment record stored (idempotent):", { sessionId, action });
     return { ok: true };
   } catch (error) {
-    console.error("[webhook] Error storing payment record:", error);
     return { ok: false, error: error.message };
   }
 }
@@ -210,83 +200,40 @@ async function handleCheckoutCompleted(event) {
   const session = event.data.object;
   const sessionId = session.id;
 
-  // Always fetch full session to ensure we have email
   let email = null;
-  
   try {
-    const fullSession = await stripe.checkout.sessions.retrieve(sessionId, {
-      expand: ["customer", "payment_intent"]
-    });
-    
-    // Try multiple sources for email (in order of preference)
+    const fullSession = await stripe.checkout.sessions.retrieve(sessionId, { expand: ["customer", "payment_intent"] });
     email = fullSession.customer_email || fullSession.customer?.email || fullSession.payment_intent?.receipt_email;
-    
-    console.log("[webhook] Retrieved session details:", { sessionId, email, hasCustomer: !!fullSession.customer });
   } catch (fetchError) {
-    console.error("[webhook] CRITICAL: Failed to fetch session details:", fetchError.message, "- this will cause email delivery to fail");
+    console.error("[webhook] Critical fetch error:", fetchError.message);
   }
 
-  console.log("[webhook] checkout.session.completed:", { sessionId, email });
-
-  if (!email) {
-    console.warn("[webhook] No email found in session", sessionId, "- customer email was not captured");
-    return;
-  }
+  if (!email) return;
 
   try {
     const lineItems = await stripe.checkout.sessions.listLineItems(sessionId);
-    if (!lineItems || !lineItems.data || lineItems.data.length === 0) {
-      console.error("[webhook] No line items found for session", sessionId);
-      return;
-    }
-
     const priceId = lineItems.data[0].price.id;
-    let licenseCode = getLicenseCodeFromPriceId(priceId);
-    let inferredFrom = null;
-
-    if (!licenseCode) {
-      // Try to infer from Stripe price/product metadata
-      licenseCode = await inferLicenseCodeFromPrice(priceId);
-      inferredFrom = licenseCode ? "inferred" : "not-inferred";
-    }
-
-    // If still unknown, fetch product name for logging and fallback to MAX
-    let productName = null;
-    if (!licenseCode) {
-      try {
-        const priceObj = await stripe.prices.retrieve(priceId, { expand: ["product"] });
-        productName = priceObj.nickname || (priceObj.product && priceObj.product.name) || null;
-      } catch (e) {
-        console.warn("[webhook] Could not fetch price/product name for priceId", priceId, e && e.message);
-      }
-      console.warn("[webhook] Unmapped Stripe priceId, falling back to 'MAX' (Founder Bundle)", { priceId, productName });
-      licenseCode = "MAX";
-    }
-
+    let licenseCode = getLicenseCodeFromPriceId(priceId) || await inferLicenseCodeFromPrice(priceId) || "MAX";
     const licenseType = getLicenseLabel(licenseCode);
 
     const primaryLicense = generateLicenseKey(licenseCode);
     const backupLicense = generateBackupLicenseKey(licenseCode);
 
+    // --- VAULT LOGIC: SAVE TO SUPABASE ---
+    const { error: dbError } = await supabase
+      .from("licenses")
+      .insert([
+        { license_key: primaryLicense.key, is_used: false },
+        { license_key: backupLicense.key, is_used: false }
+      ]);
+
+    if (dbError) console.error("[webhook] Failed to save keys to Supabase:", dbError);
+    // -------------------------------------
+
     const emailResult = await sendLicenseEmail(email, primaryLicense.key, backupLicense.key, licenseType, priceId);
-
-    const storeResult = await storePaymentRecord(
-      email,
-      sessionId,
-      primaryLicense.key,
-      backupLicense.key,
-      licenseCode,
-      licenseType,
-      emailResult.ok
-    );
-
-    console.log("[webhook] Completed for session", sessionId, {
-      emailSent: emailResult.ok,
-      stored: storeResult.ok,
-      licenseType
-    });
+    await storePaymentRecord(email, sessionId, primaryLicense.key, backupLicense.key, licenseCode, licenseType, emailResult.ok);
   } catch (error) {
-    console.error("[webhook] Error processing checkout.session.completed:", error);
+    console.error("[webhook] Error processing checkout:", error);
   }
 }
 
@@ -300,44 +247,20 @@ async function readRawBody(req) {
 }
 
 export default async function handler(req, res) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
-  }
-
+  if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
   const sig = req.headers["stripe-signature"];
-  if (!sig) {
-    return res.status(400).json({ error: "Missing stripe-signature header" });
-  }
+  if (!sig) return res.status(400).json({ error: "Missing signature" });
 
   let event;
-  let rawBody;
-
   try {
-    if (typeof req.body === "string") {
-      rawBody = req.body;
-    } else if (Buffer.isBuffer(req.body)) {
-      rawBody = req.body;
-    } else if (req.rawBody && Buffer.isBuffer(req.rawBody)) {
-      rawBody = req.rawBody;
-    } else {
-      rawBody = await readRawBody(req);
-    }
-
+    const rawBody = await readRawBody(req);
     event = stripe.webhooks.constructEvent(rawBody, sig, process.env.STRIPE_WEBHOOK_SECRET);
   } catch (error) {
-    console.error("[webhook] Webhook signature verification failed:", error.message);
     return res.status(400).json({ error: "Invalid signature" });
   }
 
-  console.log("[webhook] Received event type:", event.type);
-
-  try {
-    if (event.type === "checkout.session.completed") {
-      await handleCheckoutCompleted(event);
-    }
-    res.status(200).json({ received: true });
-  } catch (error) {
-    console.error("[webhook] Error handling event:", error);
-    res.status(500).json({ error: "Webhook processing failed" });
+  if (event.type === "checkout.session.completed") {
+    await handleCheckoutCompleted(event);
   }
+  res.status(200).json({ received: true });
 }
