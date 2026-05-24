@@ -126,27 +126,19 @@ async function sendLicenseEmail(email, licenseKey, backupKey, licenseType, price
   `;
 
   try {
+    if (RESEND_TEMPLATE_ID) {
+      console.warn("[webhook] RESEND_TEMPLATE_ID is configured, but Resend template delivery is not used by this SDK path. Sending raw HTML instead.");
+    }
+
     const mailRequest = {
       from: LICENSE_FROM_EMAIL,
       to: email,
       subject: `Your APHELION ${licenseType} License Keys`,
       ...(LICENSE_REPLY_TO_EMAIL ? { reply_to: LICENSE_REPLY_TO_EMAIL } : {}),
-      ...(RESEND_TEMPLATE_ID
-        ? {
-            template: RESEND_TEMPLATE_ID,
-            variables: {
-              licenseKey,
-              backupKey,
-              licenseType,
-              email
-            }
-          }
-        : {
-            html: emailHtml
-          })
+      html: emailHtml
     };
 
-    console.log("[webhook] Sending Resend payload", { email, template: RESEND_TEMPLATE_ID ? RESEND_TEMPLATE_ID : null });
+    console.log("[webhook] Sending Resend payload", { email, reply_to: LICENSE_REPLY_TO_EMAIL ? LICENSE_REPLY_TO_EMAIL : null });
     const response = await resend.emails.send(mailRequest);
 
     console.log("[webhook] Email sent to", email, "response:", response);
